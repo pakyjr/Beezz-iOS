@@ -29,8 +29,8 @@ L'app permette agli apicoltori di monitorare lo stato delle loro arnie in tempo 
 Per eseguire il progetto:
 
 1. Clonare il repository GitHub:
-   ```bash
-   git clone https://github.com/tuo-username/Bybs.git
+   ```
+         https://github.com/LorenzoPizzuto/Beezz.git
    ```
 2. Aprire il progetto con Xcode
 3. Eseguire su un simulatore o dispositivo iOS
