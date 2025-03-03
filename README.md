@@ -1,4 +1,4 @@
-# Beezz - App per Apicoltori
+# Beezz
 
 
 
