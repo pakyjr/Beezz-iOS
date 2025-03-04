@@ -1,9 +1,5 @@
 # Beezz
-
-
-
-
-Un'app iOS sviluppata in Swift per il monitoraggio intelligente degli alveari, basata su un dispositivo hardware che rileva le frequenze sonore delle api e invia notifiche in tempo reale agli apicoltori.
+Questo progetto si propone di sviluppare un sistema di monitoraggio intelligente per alveari, basato sull’analisi delle frequenze sonore prodotte dalle api. Attraverso un dispositivo hardware dotato di microfono e un’app iOS sviluppata in Swift, il sistema sarà in grado di identificare automaticamente diversi stati dell’alveare e inviare notifiche in tempo reale agli apicoltori.
 
 ## Indice
 
