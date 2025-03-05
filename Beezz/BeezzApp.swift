@@ -11,7 +11,7 @@ import SwiftUI
 struct BeezzApp: App {
     var body: some Scene {
         WindowGroup {
-            HomepageView()
+            HiveStatusView()
         }
     }
 }
