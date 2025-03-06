@@ -1,52 +1,52 @@
-# Beezz
-Questo progetto si propone di sviluppare un sistema di monitoraggio intelligente per alveari, basato sull’analisi delle frequenze sonore prodotte dalle api. Attraverso un dispositivo hardware dotato di microfono e un’app iOS sviluppata in Swift, il sistema sarà in grado di identificare automaticamente diversi stati dell’alveare e inviare notifiche in tempo reale agli apicoltori.
+# Beezz  
 
-## Indice
+This project aims to develop an intelligent hive monitoring system based on the analysis of sound frequencies produced by bees. Using a hardware device equipped with a microphone and an iOS app developed in Swift, the system will automatically identify different hive states and send real-time notifications to beekeepers.
 
-- [Introduzione](#introduzione)
-- [Funzionalità](#funzionalità)
-- [Installazione](#installazione)
-- [Tecnologie Utilizzate](#tecnologie-utilizzate)
-- [Contributi](#contributi)
-- [Licenza](#licenza)
+## Index  
 
-## Introduzione
+- [Introduction](#introduction)  
+- [Features](#features)  
+- [Installation](#installation)  
+- [Technologies Used](#technologies-used)  
+- [Contributions](#contributions)  
+- [License](#license)  
 
-L'app permette agli apicoltori di monitorare lo stato delle loro arnie in tempo reale grazie a sensori avanzati. Utilizzando un'interfaccia intuitiva, l'utente può accedere a dati dettagliati sugli alveari, ricevere notifiche in caso di anomalie e visualizzare statistiche storiche per migliorare la gestione degli apiari.
+## Introduction  
 
-## Funzionalità
+Beezz allows beekeepers to monitor the status of their hives in real time using advanced sensors. With an intuitive interface, users can access detailed data on their hives, receive notifications in case of anomalies, and view historical statistics to improve hive management.
 
-- **Dashboard intuitiva** con indicatori visivi chiari sullo stato degli alveari
-- **Notifiche in tempo reale** per eventi critici come sciamatura o anomalie
+## Features  
 
+- **Intuitive dashboard** with clear visual indicators of hive status  
+- **Real-time notifications** for critical events such as swarming or anomalies  
 
-## Installazione
+## Installation  
 
-Per eseguire il progetto:
+To run the project:
 
-1. Clonare il repository GitHub:
-   ```
-         https://github.com/LorenzoPizzuto/Beezz.git
-   ```
-2. Aprire il progetto con Xcode
-3. Eseguire su un simulatore o dispositivo iOS
+1. Clone the GitHub repository:  
+   ```sh
+   git clone https://github.com/LorenzoPizzuto/Beezz.git  
+   ```  
+2. Open the project with Xcode  
+3. Run it on a simulator or iOS device  
 
-## Tecnologie Utilizzate
+## Technologies Used  
 
-- Swift
-- SwiftUI
-- Xcode
-- UIKit
+- Swift  
+- SwiftUI  
+- Xcode  
+- UIKit  
 
-## Contributi
+## Contributions  
 
-Contributi e suggerimenti sono benvenuti! Per contribuire:
+Contributions and suggestions are welcome! To contribute:
 
-1. Forkare il repository
-2. Creare un branch per la propria feature
-3. Sottomettere una pull request
+1. Fork the repository  
+2. Create a branch for your feature  
+3. Submit a pull request  
 
-## Licenza
+## License  
 
-Questo progetto è distribuito sotto la licenza MIT. Vedi il file `LICENSE` per maggiori dettagli.
+This project is distributed under the MIT license. See the `LICENSE` file for more details.
 
