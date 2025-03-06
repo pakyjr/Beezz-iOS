@@ -179,11 +179,11 @@ struct HomepageView: View {
 }
 
 struct BeehiveCardView: View {
-    let beehive: Beehive
+    var beehive: Beehive
     let honeyAmber: Color
     
     var body: some View {
-        NavigationLink(destination: TestView()) {
+        NavigationLink(destination: TestView(beehive: beehive)) {
             VStack(alignment: .leading) {
                 HStack(alignment: .center, spacing: 8) {
                     Image(systemName: "hexagon.fill")
