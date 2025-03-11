@@ -18,7 +18,6 @@ import SwiftUI
 struct NotificationsView: View {
     @Environment(\.presentationMode) var presentationMode
     let notifications: [BeehiveNotification]
-    let honeyAmber: Color
     
     var body: some View {
         NavigationView {
@@ -27,7 +26,7 @@ struct NotificationsView: View {
                     ForEach(notifications) { notification in
                         HStack {
                             Image(systemName: "hexagon.fill")
-                                .foregroundColor(honeyAmber)
+                                .foregroundColor(Color.honeyAmber)
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(notification.message)
@@ -48,7 +47,7 @@ struct NotificationsView: View {
                 trailing: Button("Done") {
                     presentationMode.wrappedValue.dismiss()
                 }
-                .foregroundColor(honeyAmber)
+                    .foregroundColor(Color.honeyAmber)
             )
         }
     }
@@ -71,6 +70,6 @@ struct NotificationsView_Previews: PreviewProvider {
             BeehiveNotification(id: 2, message: "Hive 2 temperature rising", timestamp: Date().addingTimeInterval(-3600))
         ]
         
-        NotificationsView(notifications: sampleNotifications, honeyAmber: Color.orange)
+        NotificationsView(notifications: sampleNotifications)
     }
 }

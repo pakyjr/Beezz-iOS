@@ -41,12 +41,10 @@ struct HomepageView: View {
     @State private var showNotifications = false
     @State private var selectedSite: String = "Main Facility"
     @State private var showSiteSelector = false
+    @State private var showSettings = false
+    @State private var showSoundAnalysis = false
     @Environment(\.colorScheme) var colorScheme
     
-    // Apiary-themed colors
-    let honeycombYellow = Color(red: 0.98, green: 0.8, blue: 0.0)
-    let honeyAmber = Color(red: 0.85, green: 0.6, blue: 0.0)
-    let beeBlack = Color(red: 0.15, green: 0.15, blue: 0.15)
     
     // Available sites
     @State private var sites = ["Main Facility", "Mountain Field", "Hill Field", "Laboratory"]
@@ -108,27 +106,53 @@ struct HomepageView: View {
                     // Main dashboard
                     ScrollView {
                         VStack(alignment: .leading, spacing: 25) {
-                            Spacer()
-                            
                             // LazyVGrid for hives
                             LazyVGrid(columns: gridColumns, spacing: 16) {
                                 // "Add" button (Apple Home style)
                                 Button(action: {
                                     showAddBeehive = true
                                 }) {
-                                    AddBeehiveCardView(honeycombYellow: honeycombYellow, honeyAmber: honeyAmber)
+                                    AddBeehiveCardView()
                                 }
-                                
                                 // Hive cards
                                 ForEach(filteredBeehives) { beehive in
-                                    BeehiveCardView(beehive: beehive, honeyAmber: honeyAmber)
+                                    BeehiveCardView(beehive: beehive)
                                 }
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.bottom)
+                        .padding(.vertical)
                     }
                 }
+                
+                // Simple Bee-themed Sound Analysis Button
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            showSoundAnalysis = true
+                        }) {
+                            ZStack {
+                                // Simple yellow background
+                                Circle()
+                                    .foregroundColor(colorScheme == .dark ? .white : .black)
+                                    .frame(width: 60, height: 60)
+                                    .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+                                
+                                // Sound wave icon in the center
+                                Image(systemName: "microphone.fill")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 25, height: 25)
+                                    .foregroundColor(.black.opacity(0.8))
+                            }
+                        }
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 20)
+                    }
+                }
+                
                 .navigationTitle("")
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarItems(
@@ -139,10 +163,13 @@ struct HomepageView: View {
                             Text(selectedSite)
                                 .font(.title.bold())
                                 .foregroundColor(colorScheme == .dark ? .white : .black)
+                                .padding(.top)
                             
                             Image(systemName: "chevron.down")
                                 .font(.caption)
                                 .foregroundColor(.gray)
+                                .padding(.leading, 8)
+                                .padding(.top)
                         }
                         .padding(.vertical, 4)
                         .padding(.horizontal, 2)
@@ -150,18 +177,24 @@ struct HomepageView: View {
                     },
                     trailing: HStack {
                         Button(action: {
-                            // Action to show settings
+                            showSettings = true
                         }) {
                             Image(systemName: "gearshape")
-                                .foregroundColor(honeyAmber)
+                                .foregroundColor(.honeyAmber)
                         }
                     }
                 )
                 .sheet(isPresented: $showAddBeehive) {
-                    AddBeehiveView(honeyAmber: honeyAmber)
+                    AddBeehiveView()
                 }
                 .sheet(isPresented: $showNotifications) {
-                    NotificationsView(notifications: notifications, honeyAmber: honeyAmber)
+                    NotificationsView(notifications: notifications)
+                }
+                .sheet(isPresented: $showSettings) {
+                    SettingsView()
+                }
+                .sheet(isPresented: $showSoundAnalysis) {
+                    SoundAnalysisView()
                 }
                 .actionSheet(isPresented: $showSiteSelector) {
                     ActionSheet(
@@ -176,11 +209,14 @@ struct HomepageView: View {
             }
         }
     }
+
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         HomepageView()
-            .preferredColorScheme(.light)
+            .preferredColorScheme(.dark)
     }
 }
+
+

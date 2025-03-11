@@ -19,7 +19,6 @@ struct AddBeehiveView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var beehiveName = ""
     @State private var selectedRoom = "North Field"
-    let honeyAmber: Color
     let rooms = ["North Field", "South Field", "Facility"]
     
     var body: some View {
@@ -43,7 +42,7 @@ struct AddBeehiveView: View {
                             Image(systemName: "wifi")
                             Text("Configure Wi-Fi Sensor")
                         }
-                        .foregroundColor(honeyAmber)
+                        .foregroundColor(Color.honeyAmber)
                     }
                 }
                 
@@ -58,13 +57,13 @@ struct AddBeehiveView: View {
                 leading: Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
                 }
-                .foregroundColor(honeyAmber),
+                    .foregroundColor(Color.honeyAmber),
                 trailing: Button("Add") {
                     // Save action
                     presentationMode.wrappedValue.dismiss()
                 }
                 .disabled(beehiveName.isEmpty)
-                .foregroundColor(beehiveName.isEmpty ? Color.gray : honeyAmber)
+                .foregroundColor(beehiveName.isEmpty ? Color.gray : Color.honeyAmber)
             )
         }
     }
@@ -72,6 +71,6 @@ struct AddBeehiveView: View {
 
 struct AddBeehiveView_Previews: PreviewProvider {
     static var previews: some View {
-        AddBeehiveView(honeyAmber: Color.orange)
+        AddBeehiveView()
     }
 }

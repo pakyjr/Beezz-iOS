@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct AddBeehiveCardView: View {
-    let honeycombYellow: Color
-    let honeyAmber: Color
     
     var body: some View {
         VStack {
@@ -25,12 +23,12 @@ struct AddBeehiveCardView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
-                    .foregroundColor(honeyAmber)
+                    .foregroundColor(Color.honeyAmber)
             }
             
             Text("Add")
                 .font(.headline)
-                .foregroundColor(honeyAmber)
+                .foregroundColor(Color.honeyAmber)
             
             Text("a Hive")
                 .font(.subheadline)

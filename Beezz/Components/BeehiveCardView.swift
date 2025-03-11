@@ -17,14 +17,14 @@ import SwiftUI
 
 struct BeehiveCardView: View {
     var beehive: Beehive
-    let honeyAmber: Color
+    
     
     var body: some View {
         NavigationLink(destination: TestView(beehive: beehive)) {
             VStack(alignment: .leading) {
                 HStack(alignment: .center, spacing: 8) {
                     Image(systemName: "hexagon.fill")
-                        .foregroundColor(honeyAmber)
+                        .foregroundColor(Color.honeyAmber)
                         .font(.system(size: 14))
                         .frame(width: 20)
                     
@@ -51,19 +51,19 @@ struct BeehiveCardView: View {
                         Text("\(beehive.soundFrequency, specifier: "%.1f")")
                             .font(.title2)
                             .bold()
-                            .foregroundColor(honeyAmber)
+                            .foregroundColor(Color.honeyAmber)
                             .layoutPriority(1)
                         
                         Text("Hz")
                             .font(.subheadline)
-                            .foregroundColor(honeyAmber)
+                            .foregroundColor(Color.honeyAmber)
                             .baselineOffset(-4)
                     }
                 }
                 
                 Spacer()
                 
-                MiniGraphView(values: generateRandomValues(), color: beehive.status.color, accentColor: honeyAmber)
+                MiniGraphView(values: generateRandomValues(), color: beehive.status.color, accentColor: Color.honeyAmber)
                     .frame(height: 40)
                     .padding(.top, 5)
             }
@@ -90,9 +90,7 @@ struct BeehiveCardView: View {
 struct BeehiveCardView_Previews: PreviewProvider {
     static var previews: some View {
         BeehiveCardView(
-            beehive: Beehive(id: 1, name: "Test Hive", status: .normal, soundFrequency: 250.0, site: "Main Facility"),
-            honeyAmber: Color.orange
-        )
+            beehive: Beehive(id: 1, name: "Test Hive", status: .normal, soundFrequency: 250.0, site: "Main Facility"))
         .previewLayout(.sizeThatFits)
         .padding()
     }
