@@ -11,7 +11,7 @@ import SwiftUI
 // Data Models
 struct Beehive: Identifiable, Hashable {
     let id: Int
-    let name: String
+    var name: String
     let status: BeehiveStatus
     let soundFrequency: Double
     let site: String
@@ -27,6 +27,7 @@ struct Beehive: Identifiable, Hashable {
 
 enum BeehiveStatus: String {
     case normal = "Normal"
+    case warning = "Warning"
     case technicalIssue = "Offline"
     case danger = "Danger"
     
@@ -34,6 +35,7 @@ enum BeehiveStatus: String {
         switch self {
         case .normal: return .green
         case .technicalIssue: return .gray
+        case .warning: return .yellow
         case .danger: return .red
         }
     }
@@ -43,6 +45,7 @@ enum BeehiveStatus: String {
         case .danger: return 0
         case .technicalIssue: return 1
         case .normal: return 2
+        case .warning: return 3
         }
     }
 }
@@ -51,4 +54,5 @@ struct BeehiveNotification: Identifiable {
     let id: Int
     let message: String
     let timestamp: Date
+    let hiveId: Int
 }

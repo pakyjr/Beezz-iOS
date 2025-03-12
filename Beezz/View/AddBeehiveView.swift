@@ -2,14 +2,6 @@
 //  AddBeehiveView.swift
 //  Beezz
 //
-//  Created by Antonio Navarra on 06/03/25.
-//
-
-
-//
-//  AddBeehiveView.swift
-//  Beezz
-//
 //  Created on 06/03/25.
 //
 

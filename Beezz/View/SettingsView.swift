@@ -21,7 +21,6 @@ struct SettingsView: View {
     @State private var siteToDelete: String? = nil
     @State private var frequencyCriticalEnabled = true
     @State private var frequencyAlertsEnabled = true
-    @State private var notificationSoundEnabled = false
     
     private let sections = ["Site Management", "Notifications & Alerts", "Support & Info"]
     
@@ -29,7 +28,7 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 // MARK: - Site Management
-                Section(header: Text("Site Management")) {
+                Section(header: Text("Sites")) {
                     ForEach(sites, id: \.self) { site in
                         HStack {
                             Text(site)
@@ -76,7 +75,6 @@ struct SettingsView: View {
                     Toggle("Critical Frequency Alerts", isOn: $frequencyCriticalEnabled)
                     Toggle("Abnormal Frequency Alerts", isOn: $frequencyAlertsEnabled)
                     Toggle("Technical Issue Alerts", isOn: $technicalIssueAlertsEnabled)
-                    Toggle("Notification Sound", isOn: $notificationSoundEnabled)
                     
                     NavigationLink(destination: NotificationDetailView()) {
                         Text("Advanced Settings")
@@ -309,7 +307,7 @@ struct ContactSupportView: View {
 struct AboutAppView: View {
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: "hare.fill")
+            Image(systemName: "questionmark.diamond")
                 .font(.system(size: 80))
                 .foregroundColor(.yellow)
                 .padding()

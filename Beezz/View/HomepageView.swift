@@ -32,10 +32,12 @@ struct HomepageView: View {
         Beehive(id: 20, name: "Hive 20", status: .danger, soundFrequency: 410.5, site: "Main Facility")
     ].sorted { $0.status.sortPriority < $1.status.sortPriority }
     
-    @State private var notifications: [BeehiveNotification] = [
-        BeehiveNotification(id: 1, message: "Hive 2: Possible swarming detected", timestamp: Date()),
-        BeehiveNotification(id: 2, message: "Hive 4: Abnormal frequency detected", timestamp: Date().addingTimeInterval(-1800))
-    ]
+   
+    @State private var notifications: [BeehiveNotification] = []
+    /*
+     BeehiveNotification(id: 1, message: "Hive 2: Possible swarming detected", timestamp: Date(), hiveId: 2),
+        BeehiveNotification(id: 2, message: "Hive 4: Abnormal frequency detected", timestamp: Date().addingTimeInterval(-1800),hiveId: 4)
+    */
     
     @State private var showAddBeehive = false
     @State private var showNotifications = false
@@ -43,6 +45,8 @@ struct HomepageView: View {
     @State private var showSiteSelector = false
     @State private var showSettings = false
     @State private var showSoundAnalysis = false
+    @State private var selectedHive: Beehive?
+    @State private var showHiveDetail = false
     @Environment(\.colorScheme) var colorScheme
     
     
@@ -117,12 +121,17 @@ struct HomepageView: View {
                                 // Hive cards
                                 ForEach(filteredBeehives) { beehive in
                                     BeehiveCardView(beehive: beehive)
+                                        .onTapGesture {
+                                            selectedHive = beehive
+                                            showHiveDetail = true
+                                        }
                                 }
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal,4)
                         .padding(.vertical)
                     }
+                    .padding(.top)
                 }
                 
                 // Simple Bee-themed Sound Analysis Button
@@ -136,7 +145,7 @@ struct HomepageView: View {
                             ZStack {
                                 // Simple yellow background
                                 Circle()
-                                    .foregroundColor(colorScheme == .dark ? .white : .black)
+                                    .foregroundColor(colorScheme == .dark ? .yellow : .honeyAmber.opacity(0.8))
                                     .frame(width: 60, height: 60)
                                     .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
                                 
@@ -180,7 +189,12 @@ struct HomepageView: View {
                             showSettings = true
                         }) {
                             Image(systemName: "gearshape")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 25, height: 25)
                                 .foregroundColor(.honeyAmber)
+                                .padding(.top)
+                                .padding(.trailing, 4)
                         }
                     }
                 )
@@ -188,13 +202,28 @@ struct HomepageView: View {
                     AddBeehiveView()
                 }
                 .sheet(isPresented: $showNotifications) {
-                    NotificationsView(notifications: notifications)
+                    NotificationsView(
+                        notifications: notifications,
+                        onSelectHive: { hiveId in
+                            showNotifications = false
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                selectedHive = beehives.first(where: { $0.id == hiveId })
+                                showHiveDetail = true
+                            }
+                        }
+                    )
                 }
                 .sheet(isPresented: $showSettings) {
                     SettingsView()
                 }
                 .sheet(isPresented: $showSoundAnalysis) {
                     SoundAnalysisView()
+                }
+                .sheet(isPresented: $showHiveDetail) {
+                    if let hive = selectedHive {
+                        BeehiveDetailView(beehive: hive)
+                    }
                 }
                 .actionSheet(isPresented: $showSiteSelector) {
                     ActionSheet(
@@ -215,8 +244,6 @@ struct HomepageView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         HomepageView()
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(.light)
     }
 }
-
-
