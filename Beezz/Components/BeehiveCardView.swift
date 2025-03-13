@@ -20,7 +20,7 @@ struct BeehiveCardView: View {
     let honeyAmber: Color
     
     var body: some View {
-        NavigationLink(destination: TestView(beehive: beehive)) {
+        NavigationLink(destination: HiveStatusView(beehive: beehive)) {
             VStack(alignment: .leading) {
                 HStack(alignment: .center, spacing: 8) {
                     Image(systemName: "hexagon.fill")

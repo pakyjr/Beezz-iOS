@@ -16,6 +16,7 @@ struct Beehive: Identifiable, Hashable {
     let soundFrequency: Double
     let site: String
     
+    
     static func == (lhs: Beehive, rhs: Beehive) -> Bool {
         lhs.id == rhs.id
     }
