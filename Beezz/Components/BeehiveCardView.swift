@@ -6,27 +6,32 @@
 //
 
 
-//
-//  BeehiveCardView.swift
-//  Beezz
-//
-//  Created on 06/03/25.
-//
-
 import SwiftUI
 
 struct BeehiveCardView: View {
     var beehive: Beehive
     
-    
     var body: some View {
         NavigationLink(destination: BeehiveDetailView(beehive: beehive)) {
             VStack(alignment: .leading) {
                 HStack(alignment: .center, spacing: 8) {
-                    Image(systemName: "hexagon.fill")
-                        .foregroundColor(Color.honeyAmber)
-                        .font(.system(size: 14))
-                        .frame(width: 20)
+                    ZStack {
+                        // Esagono di sfondo per lo stato
+                        Image(systemName: "hexagon.fill")
+                            .foregroundColor(beehive.status.color.opacity(0.2))
+                            .font(.system(size: 18))
+                        
+                        // Bordo dell'esagono colorato in base allo stato
+                        Image(systemName: "hexagon")
+                            .foregroundColor(beehive.status.color)
+                            .font(.system(size: 18))
+                        
+                        // Piccolo indicatore all'interno dell'esagono
+                        Circle()
+                            .fill(beehive.status.color)
+                            .frame(width: 6, height: 6)
+                    }
+                    .frame(width: 24, height: 24)
                     
                     Text(beehive.name)
                         .font(.headline)
@@ -34,18 +39,32 @@ struct BeehiveCardView: View {
                         .minimumScaleFactor(0.7)
                         .truncationMode(.tail)
                         .frame(minWidth: 60, maxWidth: .infinity, alignment: .leading)
-                    
-                    StatusIndicatorView(status: beehive.status)
-                        .fixedSize()
+
                 }
                 .frame(height: 24)
                 
-                Spacer()
+                Divider()
+                    .padding(.vertical, 8)
                 
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Sound Frequency")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    HStack {
+                        Text("Sound Frequency")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        
+                        Spacer()
+                        
+                        // Aggiungiamo la descrizione dello stato
+                        Text(beehive.status.rawValue)
+                            .font(.caption)
+                            .foregroundColor(beehive.status.color)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(beehive.status.color.opacity(0.1))
+                            )
+                    }
                     
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
                         Text("\(beehive.soundFrequency, specifier: "%.1f")")
@@ -66,9 +85,24 @@ struct BeehiveCardView: View {
                 MiniGraphView(values: generateRandomValues(), color: beehive.status.color, accentColor: Color.honeyAmber)
                     .frame(height: 40)
                     .padding(.top, 5)
+                
+                // Aggiungiamo informazioni aggiuntive
+                HStack {
+                    HStack(spacing: 4) {
+                        Image(systemName: "calendar")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                        Text("Updated today")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.top, 5)
             }
             .padding()
-            .frame(height: 180)
+            .frame(height: 200) // Aumentato leggermente per ospitare le nuove informazioni
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(Color(UIColor.secondarySystemGroupedBackground))
@@ -93,7 +127,12 @@ struct BeehiveCardView_Previews: PreviewProvider {
             beehive: Beehive(id: 1, name: "Test Hive", status: .normal, soundFrequency: 250.0, site: "Main Facility"))
         .previewLayout(.sizeThatFits)
         .padding()
+        .preferredColorScheme(.light)
+        
+        BeehiveCardView(
+            beehive: Beehive(id: 2, name: "Alert Hive", status: .warning, soundFrequency: 325.5, site: "North Field"))
+        .previewLayout(.sizeThatFits)
+        .padding()
+        .preferredColorScheme(.dark)
     }
 }
-
-

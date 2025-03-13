@@ -32,7 +32,7 @@ struct BeehiveDetailView: View {
     
     // Thresholds for frequency values
     private let normalThreshold: Double = 250.0
-    private let warningThreshold: Double = 350.0
+    private let dangerThreshold: Double = 350.0
     
     // Date formatter for display
     private let dateFormatter: DateFormatter = {
@@ -113,14 +113,6 @@ struct BeehiveDetailView: View {
                         Text(beehive.name)
                             .font(.headline)
                             .foregroundColor(colorScheme == .dark ? .white : .black)
-                        
-                        Button(action: {
-                            isEditingName = true
-                        }) {
-                            Image(systemName: "pencil")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
                     }
                 }
             }
@@ -176,7 +168,7 @@ struct BeehiveDetailView: View {
     
     // MARK: - Status Section
     private var statusSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Current Status")
                 .font(.headline)
                 .foregroundColor(.honeyAmber)
@@ -237,7 +229,7 @@ struct BeehiveDetailView: View {
     
     // MARK: - Chart Section
     private var chartSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Frequency Trend")
                 .font(.headline)
                 .foregroundColor(.honeyAmber)
@@ -263,20 +255,24 @@ struct BeehiveDetailView: View {
                         RuleMark(y: .value("Normal", normalThreshold))
                             .foregroundStyle(.green.opacity(0.5))
                             .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                            .annotation(position: .trailing) {
+                            .annotation(position: .leading) {
                                 Text("Normal")
                                     .font(.caption)
                                     .foregroundColor(.green)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
                             }
                         
                         // Add warning threshold rule
-                        RuleMark(y: .value("Alert", warningThreshold))
+                        RuleMark(y: .value("Danger", dangerThreshold))
                             .foregroundStyle(.red.opacity(0.5))
                             .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                            .annotation(position: .trailing) {
-                                Text("Alert")
+                            .annotation(position: .leading) {
+                                Text("Danger")
                                     .font(.caption)
                                     .foregroundColor(.red)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
                             }
                     }
                     .frame(height: 250)
@@ -322,7 +318,7 @@ struct BeehiveDetailView: View {
     
     // MARK: - History Section
     private var historySection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Analysis History")
                     .font(.headline)
@@ -392,7 +388,7 @@ struct BeehiveDetailView: View {
     
     // MARK: - Actions Section
     private var actionsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Quick Actions")
                 .font(.headline)
                 .foregroundColor(.honeyAmber)
@@ -493,7 +489,7 @@ struct BeehiveDetailView: View {
     }
     
     private func frequencyColor(for value: Double) -> Color {
-        if value >= warningThreshold {
+        if value >= dangerThreshold {
             return .red
         } else if value >= normalThreshold {
             return .orange
@@ -503,7 +499,7 @@ struct BeehiveDetailView: View {
     }
     
     private func frequencyStatus(for value: Double) -> String {
-        if value >= warningThreshold {
+        if value >= dangerThreshold {
             return "xmark.circle.fill"
         } else if value >= normalThreshold {
             return "exclamationmark.triangle.fill"
@@ -527,7 +523,7 @@ struct HistoryView: View {
     }()
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(records.reversed()) { record in
                     HStack {
@@ -577,7 +573,7 @@ struct FrequencyRecord: Identifiable, Equatable {
 
 struct BeehiveDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             BeehiveDetailView(beehive: Beehive(
                 id: 3,
                 name: "Hive 1",
@@ -586,6 +582,6 @@ struct BeehiveDetailView_Previews: PreviewProvider {
                 site: "Main Facility"
             ))
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
     }
 }

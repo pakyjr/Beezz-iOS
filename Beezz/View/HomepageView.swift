@@ -9,7 +9,6 @@ import SwiftUI
 
 struct HomepageView: View {
     @State private var beehives: [Beehive] = [
-        // Existing beehives
         Beehive(id: 1, name: "Hive 3", status: .technicalIssue, soundFrequency: 0, site: "Main Facility"),
         Beehive(id: 2, name: "Hive 2", status: .danger, soundFrequency: 350.8, site: "Mountain Field"),
         Beehive(id: 3, name: "Hive 1", status: .normal, soundFrequency: 215.2, site: "Main Facility"),
@@ -26,19 +25,17 @@ struct HomepageView: View {
         Beehive(id: 14, name: "Hive 14", status: .normal, soundFrequency: 195.3, site: "Laboratory"),
         Beehive(id: 15, name: "Hive 15", status: .danger, soundFrequency: 380.2, site: "Mountain Field"),
         Beehive(id: 16, name: "Hive 16", status: .normal, soundFrequency: 225.9, site: "Hill Field"),
-        Beehive(id: 17, name: "Hive 17", status: .normal, soundFrequency: 240.1, site: "Main Facility"),
+        Beehive(id: 17, name: "Hive 17", status: .normal, soundFrequency: 240.1, site: "Hill Field"),
         Beehive(id: 18, name: "Hive 18", status: .technicalIssue, soundFrequency: 0, site: "Laboratory"),
-        Beehive(id: 19, name: "Hive 19", status: .warning, soundFrequency: 275.4, site: "Mountain Field"),
+        Beehive(id: 19, name: "Hive 19", status: .warning, soundFrequency: 275.4, site: "Main Facility"),
         Beehive(id: 20, name: "Hive 20", status: .danger, soundFrequency: 410.5, site: "Main Facility")
     ].sorted { $0.status.sortPriority < $1.status.sortPriority }
     
-   
-    @State private var notifications: [BeehiveNotification] = []
-    /*
-     BeehiveNotification(id: 1, message: "Hive 2: Possible swarming detected", timestamp: Date(), hiveId: 2),
+    @State private var notifications: [BeehiveNotification] = [
+        BeehiveNotification(id: 1, message: "Hive 2: Possible swarming detected", timestamp: Date(), hiveId: 2),
         BeehiveNotification(id: 2, message: "Hive 4: Abnormal frequency detected", timestamp: Date().addingTimeInterval(-1800),hiveId: 4)
-    */
-    
+    ]
+        
     @State private var showAddBeehive = false
     @State private var showNotifications = false
     @State private var selectedSite: String = "Main Facility"
@@ -49,11 +46,8 @@ struct HomepageView: View {
     @State private var showHiveDetail = false
     @Environment(\.colorScheme) var colorScheme
     
-    
-    // Available sites
     @State private var sites = ["Main Facility", "Mountain Field", "Hill Field", "Laboratory"]
 
-    // Grid layout with 2 columns
     private var gridColumns: [GridItem] {
         [GridItem(.flexible()), GridItem(.flexible())]
     }
@@ -71,7 +65,6 @@ struct HomepageView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background with light gradient similar to Apple Home
                 LinearGradient(
                     gradient: Gradient(colors: [
                         colorScheme == .dark ? Color.black : Color(UIColor.systemGroupedBackground),
@@ -83,7 +76,6 @@ struct HomepageView: View {
                 .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // System status indicator (Apple Home style)
                     if !notifications.isEmpty {
                         HStack(spacing: 10) {
                             Image(systemName: "exclamationmark.triangle.fill")
@@ -107,18 +99,9 @@ struct HomepageView: View {
                         }
                     }
                     
-                    // Main dashboard
                     ScrollView {
                         VStack(alignment: .leading, spacing: 25) {
-                            // LazyVGrid for hives
                             LazyVGrid(columns: gridColumns, spacing: 16) {
-                                // "Add" button (Apple Home style)
-                                Button(action: {
-                                    showAddBeehive = true
-                                }) {
-                                    AddBeehiveCardView()
-                                }
-                                // Hive cards
                                 ForEach(filteredBeehives) { beehive in
                                     BeehiveCardView(beehive: beehive)
                                         .onTapGesture {
@@ -126,15 +109,20 @@ struct HomepageView: View {
                                             showHiveDetail = true
                                         }
                                 }
+                                
+                                Button(action: {
+                                    showAddBeehive = true
+                                }) {
+                                    AddBeehiveCardView()
+                                }
                             }
                         }
-                        .padding(.horizontal,4)
-                        .padding(.vertical)
+                        .padding(.horizontal, 4)
+                        
                     }
                     .padding(.top)
                 }
                 
-                // Simple Bee-themed Sound Analysis Button
                 VStack {
                     Spacer()
                     HStack {
@@ -143,13 +131,11 @@ struct HomepageView: View {
                             showSoundAnalysis = true
                         }) {
                             ZStack {
-                                // Simple yellow background
                                 Circle()
                                     .foregroundColor(colorScheme == .dark ? .yellow : .honeyAmber.opacity(0.8))
                                     .frame(width: 60, height: 60)
                                     .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
                                 
-                                // Sound wave icon in the center
                                 Image(systemName: "microphone.fill")
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
@@ -185,6 +171,18 @@ struct HomepageView: View {
                         .background(Color.clear)
                     },
                     trailing: HStack {
+                        Button(action: {
+                            showAddBeehive = true
+                        }) {
+                            Image(systemName: "plus")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 22, height: 22)
+                                .foregroundColor(.honeyAmber)
+                                .padding(.top)
+                                .padding(.trailing, 8)
+                        }
+                        
                         Button(action: {
                             showSettings = true
                         }) {
