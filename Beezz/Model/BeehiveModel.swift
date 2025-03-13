@@ -43,9 +43,9 @@ enum BeehiveStatus: String {
     var sortPriority: Int {
         switch self {
         case .danger: return 0
-        case .technicalIssue: return 1
-        case .normal: return 2
-        case .warning: return 3
+        case .warning: return 1
+        case .technicalIssue: return 2
+        case .normal: return 3
         }
     }
 }
