@@ -3,7 +3,7 @@ import AVFoundation
 import Accelerate
 
 // Enumeration per lo stato dell'arnia
-enum HiveStatus: String {
+enum Result: String {
     case normal = "NORMAL"
     case warning = "WARNING"
     case critical = "CRITICAL"
@@ -27,7 +27,7 @@ enum HiveStatus: String {
     }
     
     // Determinazione dello stato basato sulla frequenza
-    static func fromFrequency(_ frequency: Double) -> HiveStatus {
+    static func fromFrequency(_ frequency: Double) -> Result {
         switch frequency {
         case 0..<200: return .normal  // Assumiamo che frequenze molto basse siano normali
         case 200..<500: return .normal
@@ -38,12 +38,15 @@ enum HiveStatus: String {
     }
 }
 
+
 struct SoundAnalysisView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var isListening = false
     @State private var soundWaves: [CGFloat] = Array(repeating: 0, count: 30)
     @State private var frequency: Double = 0
     @State private var analysisComplete = false
+    @State private var showHiveSelectionSheet = false
+    @State private var showNewHiveSheet = false
     
     // Stati per l'analisi audio
     @State private var audioEngine: AVAudioEngine?
@@ -52,17 +55,9 @@ struct SoundAnalysisView: View {
     @State private var problemDetected: Bool = false
     @State private var problemDescription: String = ""
     
-    // Definizione delle bande di frequenza e problemi correlati
-    let frequencyProblems: [(range: ClosedRange<Double>, problem: String)] = [
-        (150...200, "Possibile regina assente"),
-        (250...300, "Possibile infestazione di varroa"),
-        (300...350, "Possibile sciamatura imminente"),
-        (350...450, "Possibile stress nella colonia")
-    ]
-    
     // Calcola lo stato dell'arnia basato sulla frequenza corrente
-    var hiveStatus: HiveStatus {
-        return HiveStatus.fromFrequency(frequency)
+    var hiveStatus: Result {
+        return Result.fromFrequency(frequency)
     }
     
     var body: some View {
@@ -166,7 +161,51 @@ struct SoundAnalysisView: View {
                         }
                         .padding(.vertical)
                         
-                        
+                        // Buttons for pairing with existing hive or creating a new one
+                        VStack(spacing: 16) {
+                            // Pair with existing hive button
+                            Button(action: {
+                                showHiveSelectionSheet = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "link")
+                                        .font(.headline)
+                                        .foregroundColor(.black)
+                                    Text("Pair with existing hive")
+                                        .font(.headline)
+                                        .foregroundColor(.black)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white.opacity(0.2))
+                                )
+                                
+                            }
+                            
+                            // Create new hive button
+                            Button(action: {
+                                showNewHiveSheet = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "plus.circle")
+                                        .font(.headline)
+                                        .foregroundColor(.black)
+                                    Text("Create new hive")
+                                        .font(.headline)
+                                        .foregroundColor(.black)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white.opacity(0.2))
+                                )
+                                
+                            }
+                        }
+                        .padding(.horizontal)
                     }
                     
                     Spacer()
@@ -190,11 +229,33 @@ struct SoundAnalysisView: View {
                 }
                 resetAudioSession()
             }
+            .sheet(isPresented: $showHiveSelectionSheet) {
+                HiveSelectionView(analysisResult: AnalysisResult(
+                    frequency: frequency,
+                    status: hiveStatus,
+                    date: Date(),
+                    bands: frequencyBands
+                )) {
+                    showHiveSelectionSheet = false
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+            .sheet(isPresented: $showNewHiveSheet) {
+                NewHiveView(analysisResult: AnalysisResult(
+                    frequency: frequency,
+                    status: hiveStatus,
+                    date: Date(),
+                    bands: frequencyBands
+                )) {
+                    showNewHiveSheet = false
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
         }
     }
     
     // Componente per visualizzare una legenda dello stato
-    func statusLegendItem(status: HiveStatus, range: String) -> some View {
+    func statusLegendItem(status: Result, range: String) -> some View {
         HStack {
             Circle()
                 .fill(status.color)
@@ -401,43 +462,157 @@ struct SoundAnalysisView: View {
             inputNode.removeTap(onBus: 0)
             self.audioEngine = nil
         }
-        
-        // Analizza i risultati per rilevare eventuali problemi
-        analyzeResults()
+    }
+}
+
+// Struttura per memorizzare i risultati dell'analisi
+struct AnalysisResult {
+    let frequency: Double
+    let status: Result
+    let date: Date
+    let bands: [String: Double]
+}
+
+// View per la selezione di un'arnia esistente
+struct HiveSelectionView: View {
+    @Environment(\.presentationMode) var presentationMode
+    var analysisResult: AnalysisResult
+    var onCompletion: () -> Void
+    
+    // Esempio di dati delle arnie (da sostituire con dati reali)
+    @State private var hives = [
+        Hive(id: UUID(), name: "Arnia 1", location: "Giardino"),
+        Hive(id: UUID(), name: "Arnia 2", location: "Campo Nord"),
+        Hive(id: UUID(), name: "Arnia 3", location: "Campo Sud")
+    ]
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(hives) { hive in
+                    Button(action: {
+                        // Associa il risultato dell'analisi all'arnia selezionata
+                        pairAnalysisWithHive(hive)
+                    }) {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(hive.name)
+                                    .font(.headline)
+                                Text(hive.location)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+            .navigationTitle("Seleziona Arnia")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Annulla") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            }
+        }
     }
     
-    // Analizza i risultati per identificare potenziali problemi nell'arnia
-    func analyzeResults() {
-        problemDetected = false
+    private func pairAnalysisWithHive(_ hive: Hive) {
+        // Qui dovresti implementare la logica per salvare il risultato dell'analisi
+        // all'arnia selezionata, ad esempio utilizzando CoreData o un altro sistema di persistenza
+        print("Abbinato risultato all'arnia: \(hive.name)")
+        print("Frequenza: \(analysisResult.frequency) Hz, Stato: \(analysisResult.status.rawValue)")
         
-        // Controlla se la frequenza dominante indica un problema
-        for (range, problem) in frequencyProblems {
-            if range.contains(frequency) {
-                problemDetected = true
-                problemDescription = problem
-                break
-            }
-        }
-        
-        // Verifica anche i livelli delle bande di frequenza
-        if !problemDetected {
-            // Esempi di criteri per identificare problemi basati sulle bande
-            if let bassLevel = frequencyBands["Bassa (150-200 Hz)"],
-               let midLevel = frequencyBands["Media (200-300 Hz)"] {
-                if bassLevel > -30 && midLevel < -50 {
-                    problemDetected = true
-                    problemDescription = "Possibile problema di ventilazione nell'arnia"
+        // Chiudi la vista e torna alla vista principale
+        onCompletion()
+    }
+}
+
+// Vista per la creazione di una nuova arnia
+struct NewHiveView: View {
+    @Environment(\.presentationMode) var presentationMode
+    var analysisResult: AnalysisResult
+    var onCompletion: () -> Void
+    
+    @State private var hiveName: String = ""
+    @State private var hiveLocation: String = ""
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section(header: Text("Informazioni Arnia")) {
+                    TextField("Nome", text: $hiveName)
+                    TextField("Posizione", text: $hiveLocation)
                 }
+                
+                Section(header: Text("Analisi Sonora")) {
+                    HStack {
+                        Text("Frequenza")
+                        Spacer()
+                        Text("\(analysisResult.frequency, specifier: "%.1f") Hz")
+                    }
+                    
+                    HStack {
+                        Text("Stato")
+                        Spacer()
+                        Text(analysisResult.status.rawValue)
+                            .foregroundColor(analysisResult.status.color)
+                    }
+                    
+                    HStack {
+                        Text("Data")
+                        Spacer()
+                        Text(analysisResult.date, style: .date)
+                    }
+                }
+                
+                Button(action: {
+                    createNewHive()
+                }) {
+                    Text("Crea Arnia")
+                        .frame(maxWidth: .infinity)
+                        .multilineTextAlignment(.center)
+                }
+                .disabled(hiveName.isEmpty)
             }
-            
-            if let highLevel = frequencyBands["Alta (300-400 Hz)"] {
-                if highLevel > -35 {
-                    problemDetected = true
-                    problemDescription = "Possibile agitazione nella colonia"
+            .navigationTitle("Nuova Arnia")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Annulla") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
                 }
             }
         }
     }
+    
+    private func createNewHive() {
+        // Qui dovresti implementare la logica per creare una nuova arnia
+        // e associare il risultato dell'analisi
+        let newHive = Hive(id: UUID(), name: hiveName, location: hiveLocation)
+        
+        print("Creata nuova arnia: \(newHive.name) in \(newHive.location)")
+        print("Con analisi: Frequenza: \(analysisResult.frequency) Hz, Stato: \(analysisResult.status.rawValue)")
+        
+        // Chiudi la vista e torna alla vista principale
+        onCompletion()
+    }
+}
+
+// Modello di dati per un'arnia
+struct Hive: Identifiable {
+    let id: UUID
+    let name: String
+    let location: String
 }
 
 struct SoundAnalysisView_Previews: PreviewProvider {
