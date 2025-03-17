@@ -13,20 +13,20 @@ struct HomepageView: View {
         Beehive(id: 2, name: "Hive 2", status: .danger, soundFrequency: 350.8, site: "Mountain Field"),
         Beehive(id: 3, name: "Hive 1", status: .normal, soundFrequency: 215.2, site: "Main Facility"),
         Beehive(id: 4, name: "Hive 4", status: .warning, soundFrequency: 280.4, site: "Hill Field"),
-        Beehive(id: 5, name: "Hive 5", status: .normal, soundFrequency: 200.3, site: "Laboratory"),
-        Beehive(id: 6, name: "Hive 6", status: .normal, soundFrequency: 180.6, site: "Laboratory"),
+        Beehive(id: 5, name: "Hive 5", status: .normal, soundFrequency: 200.3, site: "Hill Field"),
+        Beehive(id: 6, name: "Hive 6", status: .normal, soundFrequency: 180.6, site: "Hill Field"),
         Beehive(id: 7, name: "Hive 7", status: .normal, soundFrequency: 245.0, site: "Mountain Field"),
         Beehive(id: 8, name: "Hive 8", status: .technicalIssue, soundFrequency: 0, site: "Hill Field"),
-        Beehive(id: 9, name: "Hive 9", status: .danger, soundFrequency: 420.0, site: "Laboratory"),
+        Beehive(id: 9, name: "Hive 9", status: .danger, soundFrequency: 420.0, site: "Mountain Field"),
         Beehive(id: 10, name: "Hive 10", status: .normal, soundFrequency: 198.7, site: "Main Facility"),
         Beehive(id: 11, name: "Hive 11", status: .normal, soundFrequency: 230.5, site: "Mountain Field"),
         Beehive(id: 12, name: "Hive 12", status: .warning, soundFrequency: 290.8, site: "Hill Field"),
         Beehive(id: 13, name: "Hive 13", status: .technicalIssue, soundFrequency: 0, site: "Main Facility"),
-        Beehive(id: 14, name: "Hive 14", status: .normal, soundFrequency: 195.3, site: "Laboratory"),
+        Beehive(id: 14, name: "Hive 14", status: .normal, soundFrequency: 195.3, site: "Main Facility"),
         Beehive(id: 15, name: "Hive 15", status: .danger, soundFrequency: 380.2, site: "Mountain Field"),
         Beehive(id: 16, name: "Hive 16", status: .normal, soundFrequency: 225.9, site: "Hill Field"),
         Beehive(id: 17, name: "Hive 17", status: .normal, soundFrequency: 240.1, site: "Hill Field"),
-        Beehive(id: 18, name: "Hive 18", status: .technicalIssue, soundFrequency: 0, site: "Laboratory"),
+        Beehive(id: 18, name: "Hive 18", status: .technicalIssue, soundFrequency: 0, site: "Main Facility"),
         Beehive(id: 19, name: "Hive 19", status: .warning, soundFrequency: 275.4, site: "Main Facility"),
         Beehive(id: 20, name: "Hive 20", status: .danger, soundFrequency: 410.5, site: "Main Facility")
     ].sorted { $0.status.sortPriority < $1.status.sortPriority }
@@ -100,20 +100,20 @@ struct HomepageView: View {
                     }
                     
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 25) {
-                            LazyVGrid(columns: gridColumns, spacing: 16) {
+                        LazyVGrid(columns: gridColumns, spacing: 16) {
+                            if filteredBeehives.isEmpty {
+                                Button(action: {
+                                    showAddBeehive = true
+                                }) {
+                                    AddBeehiveCardView()
+                                }
+                            } else {
                                 ForEach(filteredBeehives) { beehive in
                                     BeehiveCardView(beehive: beehive)
                                         .onTapGesture {
                                             selectedHive = beehive
                                             showHiveDetail = true
                                         }
-                                }
-                                
-                                Button(action: {
-                                    showAddBeehive = true
-                                }) {
-                                    AddBeehiveCardView()
                                 }
                             }
                         }
