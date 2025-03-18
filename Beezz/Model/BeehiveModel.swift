@@ -49,10 +49,3 @@ enum BeehiveStatus: String {
         }
     }
 }
-
-struct BeehiveNotification: Identifiable {
-    let id: Int
-    let message: String
-    let timestamp: Date
-    let hiveId: Int
-}

@@ -252,7 +252,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Beezz/Preview Content\"";
-				DEVELOPMENT_TEAM = 9UQVCUSP86;
+				DEVELOPMENT_TEAM = NSS63TLC7N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs microphone access to capture and analyze bee buzzing frequencies for research purposes.";
@@ -282,7 +282,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Beezz/Preview Content\"";
-				DEVELOPMENT_TEAM = 9UQVCUSP86;
+				DEVELOPMENT_TEAM = NSS63TLC7N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs microphone access to capture and analyze bee buzzing frequencies for research purposes.";
