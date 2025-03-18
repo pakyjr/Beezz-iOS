@@ -474,65 +474,131 @@ struct AnalysisResult {
 }
 
 // View per la selezione di un'arnia esistente
+// Step 1: Create a new ConfirmationView
+struct ConfirmationView: View {
+    var hiveName: String
+    var onDismiss: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            // Success icon
+            Image(systemName: "checkmark.circle.fill")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 80, height: 80)
+                .foregroundColor(.green)
+            
+            // Confirmation message
+            Text("Report Successfully Associated")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+            
+            Text("The analysis report has been successfully associated with \"\(hiveName)\"")
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+            
+            // Dismiss button
+            Button(action: {
+                onDismiss()
+            }) {
+                Text("Done")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.green)
+                    )
+                    .padding(.horizontal)
+            }
+            .padding(.top)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(UIColor.systemBackground))
+    }
+}
+
+// Step 2: Modify the HiveSelectionView to use this confirmation view
 struct HiveSelectionView: View {
     @Environment(\.presentationMode) var presentationMode
     var analysisResult: AnalysisResult
     var onCompletion: () -> Void
     
-    // Esempio di dati delle arnie (da sostituire con dati reali)
+    // Example hive data (replace with real data)
     @State private var hives = [
-        Hive(id: UUID(), name: "Arnia 1", location: "Giardino"),
-        Hive(id: UUID(), name: "Arnia 2", location: "Campo Nord"),
-        Hive(id: UUID(), name: "Arnia 3", location: "Campo Sud")
+        Hive(id: UUID(), name: "Hive 1", location: "Garden"),
+        Hive(id: UUID(), name: "Hive 2", location: "Nord Camp"),
+        Hive(id: UUID(), name: "Hive 3", location: "Sud Camp")
     ]
+    
+    // Add state for showing confirmation
+    @State private var showingConfirmation = false
+    @State private var selectedHive: Hive?
     
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(hives) { hive in
-                    Button(action: {
-                        // Associa il risultato dell'analisi all'arnia selezionata
-                        pairAnalysisWithHive(hive)
-                    }) {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(hive.name)
-                                    .font(.headline)
-                                Text(hive.location)
-                                    .font(.subheadline)
+            ZStack {
+                // Main List View
+                List {
+                    ForEach(hives) { hive in
+                        Button(action: {
+                            // Store the selected hive and pair the analysis
+                            selectedHive = hive
+                            pairAnalysisWithHive(hive)
+                            showingConfirmation = true
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(hive.name)
+                                        .font(.headline)
+                                    Text(hive.location)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
                                     .foregroundColor(.secondary)
                             }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
+                            .padding(.vertical, 4)
                         }
-                        .padding(.vertical, 4)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-            }
-            .navigationTitle("Seleziona Arnia")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Annulla") {
-                        presentationMode.wrappedValue.dismiss()
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
+                .navigationTitle("Select a Hive")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Dismiss") {
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    }
+                }
+                
+                // Overlay confirmation view when showing
+                if showingConfirmation && selectedHive != nil {
+                    ConfirmationView(hiveName: selectedHive!.name) {
+                        onCompletion()
+                    }
+                    .transition(.opacity)
+                    .zIndex(1)
+                }
             }
+            .animation(.easeInOut, value: showingConfirmation)
         }
     }
     
     private func pairAnalysisWithHive(_ hive: Hive) {
-        // Qui dovresti implementare la logica per salvare il risultato dell'analisi
-        // all'arnia selezionata, ad esempio utilizzando CoreData o un altro sistema di persistenza
-        print("Abbinato risultato all'arnia: \(hive.name)")
-        print("Frequenza: \(analysisResult.frequency) Hz, Stato: \(analysisResult.status.rawValue)")
+        // Here you should implement the logic to save the analysis result
+        // to the selected hive, e.g. using CoreData or another persistence system
+        print("Paired result with hive: \(hive.name)")
+        print("Frequency: \(analysisResult.frequency) Hz, Status: \(analysisResult.status.rawValue)")
         
-        // Chiudi la vista e torna alla vista principale
-        onCompletion()
+        // The view will now show the confirmation instead of immediately dismissing
     }
 }
 
@@ -548,27 +614,27 @@ struct NewHiveView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Informazioni Arnia")) {
-                    TextField("Nome", text: $hiveName)
-                    TextField("Posizione", text: $hiveLocation)
+                Section(header: Text("Hive Information")) {
+                    TextField("Name", text: $hiveName)
+                    TextField("Position", text: $hiveLocation)
                 }
                 
-                Section(header: Text("Analisi Sonora")) {
+                Section(header: Text("Sound Analysis")) {
                     HStack {
-                        Text("Frequenza")
+                        Text("Frequency")
                         Spacer()
                         Text("\(analysisResult.frequency, specifier: "%.1f") Hz")
                     }
                     
                     HStack {
-                        Text("Stato")
+                        Text("State")
                         Spacer()
                         Text(analysisResult.status.rawValue)
                             .foregroundColor(analysisResult.status.color)
                     }
                     
                     HStack {
-                        Text("Data")
+                        Text("Date")
                         Spacer()
                         Text(analysisResult.date, style: .date)
                     }
@@ -577,13 +643,13 @@ struct NewHiveView: View {
                 Button(action: {
                     createNewHive()
                 }) {
-                    Text("Crea Arnia")
+                    Text("Create Hive")
                         .frame(maxWidth: .infinity)
                         .multilineTextAlignment(.center)
                 }
                 .disabled(hiveName.isEmpty)
             }
-            .navigationTitle("Nuova Arnia")
+            .navigationTitle("New Hive")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -600,8 +666,8 @@ struct NewHiveView: View {
         // e associare il risultato dell'analisi
         let newHive = Hive(id: UUID(), name: hiveName, location: hiveLocation)
         
-        print("Creata nuova arnia: \(newHive.name) in \(newHive.location)")
-        print("Con analisi: Frequenza: \(analysisResult.frequency) Hz, Stato: \(analysisResult.status.rawValue)")
+        print("New hive created: \(newHive.name) in \(newHive.location)")
+        print("Analysis result: Frequency: \(analysisResult.frequency) Hz, State: \(analysisResult.status.rawValue)")
         
         // Chiudi la vista e torna alla vista principale
         onCompletion()
@@ -636,10 +702,10 @@ struct SoundAnalysisView_Previews: PreviewProvider {
                 frequency: 350.0,
                 analysisComplete: true,
                 frequencyBands: [
-                    "Bassa (150-200 Hz)": -45.7,
-                    "Media (200-300 Hz)": -38.2,
-                    "Alta (300-400 Hz)": -52.9,
-                    "Molto alta (400-500 Hz)": -60.3
+                    "Low (150-200 Hz)": -45.7,
+                    "Middle (200-300 Hz)": -38.2,
+                    "High (300-400 Hz)": -52.9,
+                    "Very high (400-500 Hz)": -60.3
                 ]
             )
             .previewDisplayName("Stato Normale")
