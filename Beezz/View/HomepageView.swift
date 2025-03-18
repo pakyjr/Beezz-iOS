@@ -32,78 +32,8 @@ struct HomepageView: View {
     ].sorted { $0.status.sortPriority < $1.status.sortPriority }
     
     @State private var notifications: [BeehiveNotification] = [
-        BeehiveNotification(
-            id: 1,
-            message: "Possible swarming detected",
-            timestamp: Date(),
-            hiveId: 2,
-            isRead: false,
-            type: .danger,
-            details: "High frequency readings (420.5 Hz) indicate potential swarming behavior. Immediate inspection recommended."
-        ),
-        BeehiveNotification(
-            id: 2,
-            message: "Abnormal frequency detected",
-            timestamp: Date().addingTimeInterval(-1800),
-            hiveId: 4,
-            isRead: false,
-            type: .warning,
-            details: "Sound frequency (280.4 Hz) outside normal range detected. Colony may be under stress."
-        ),
-        BeehiveNotification(
-            id: 3,
-            message: "Sensor disconnected",
-            timestamp: Date().addingTimeInterval(-3600 * 5),
-            hiveId: 8,
-            isRead: true,
-            type: .technicalIssue,
-            details: "No data received from sensors since 09:00. Check connectivity and power supply."
-        ),
-        BeehiveNotification(
-            id: 4,
-            message: "Temperature spike detected",
-            timestamp: Date().addingTimeInterval(-3600 * 12),
-            hiveId: 12,
-            isRead: false,
-            type: .warning,
-            details: "Temperature reached 38.2°C, which is 5°C above normal range. Check ventilation."
-        ),
-        BeehiveNotification(
-            id: 6,
-            message: "Queen activity reduced",
-            timestamp: Date().addingTimeInterval(-3600 * 48),
-            hiveId: 9,
-            isRead: false,
-            type: .warning,
-            details: "Queen bee activity has decreased by 30%. Possible signs of queen health issues."
-        ),
-        BeehiveNotification(
-            id: 7,
-            message: "Critical temperature alarm",
-            timestamp: Date().addingTimeInterval(-3600 * 72),
-            hiveId: 15,
-            isRead: false,
-            type: .danger,
-            details: "Temperature has reached critical levels (41°C). Immediate cooling measures required."
-        ),
-        BeehiveNotification(
-            id: 9,
-            message: "Battery low",
-            timestamp: Date().addingTimeInterval(-3600 * 120),
-            hiveId: 13,
-            isRead: false,
-            type: .technicalIssue,
-            details: "Sensor battery level at 15%. Please replace batteries within the next 48 hours."
-        ),
-        BeehiveNotification(
-            id: 10,
-            message: "Pest detection alert",
-            timestamp: Date().addingTimeInterval(-3600 * 144),
-            hiveId: 7,
-            isRead: false,
-            type: .danger,
-            details: "Acoustic signatures matching Varroa mite infestation detected. Immediate treatment recommended."
-        )
+        BeehiveNotification(id: 1, message: "Hive 2: Possible swarming detected", timestamp: Date(), hiveId: 2),
+        BeehiveNotification(id: 2, message: "Hive 4: Abnormal frequency detected", timestamp: Date().addingTimeInterval(-1800),hiveId: 4)
     ]
         
     @State private var showAddBeehive = false
@@ -201,23 +131,38 @@ struct HomepageView: View {
                             showSoundAnalysis = true
                         }) {
                             ZStack {
+                                // 1. Cerchio con ombra specifica
                                 Circle()
-                                    .foregroundColor(colorScheme == .dark ? .yellow : .honeyAmber.opacity(0.8))
+                                    .foregroundColor(colorScheme == .dark ? .yellow : .honeyAmber)
                                     .frame(width: 60, height: 60)
-                                    .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+                                    .shadow(
+                                        color: Color.black.opacity(110/255), // Alpha esatto 28
+                                        radius: 4, // Blur 4
+                                        x: 0,
+                                        y: 2
+                                    )
                                 
-                                Image(systemName: "microphone.fill")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 25, height: 25)
-                                    .foregroundColor(.black.opacity(0.8))
+                                // 2. Esagono con ombra diversa
+                                Image(systemName: "hexagon.fill")
+                                    .font(.system(size: 30))
+                                    .foregroundColor(.white)
+                                    .shadow(
+                                        color: Color.black.opacity(35/255), // Alpha esatto 9
+                                        radius: 4, // Blur 4
+                                        x: 0,
+                                        y: 2
+                                    )
+                                
+                                // 3. Waveform senza ombre
+                                Image(systemName: "waveform.path.ecg")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(.honeyAmber)
                             }
                         }
                         .padding(.trailing, 20)
                         .padding(.bottom, 20)
                     }
                 }
-                
                 .navigationTitle("")
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarItems(
