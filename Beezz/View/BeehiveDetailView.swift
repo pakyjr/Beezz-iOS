@@ -245,140 +245,59 @@ struct BeehiveDetailView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 if beehive.status != .technicalIssue {
-                    ZStack(alignment: .top) {
-                        // Data point popup
-                        if let selectedPoint = selectedDataPoint, showDataPointInfo {
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    Text("Date: \(dateFormatter.string(from: selectedPoint.date))")
-                                        .font(.caption)
-                                    
-                                    Spacer()
-                                    
-                                    Button(action: {
-                                        showDataPointInfo = false
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.gray)
-                                    }
-                                }
-                                
-                                HStack {
-                                    Text("Frequency:")
-                                        .font(.caption)
-                                    
-                                    Text("\(selectedPoint.value, specifier: "%.1f") Hz")
-                                        .font(.caption)
-                                        .bold()
-                                        .foregroundColor(frequencyColor(for: selectedPoint.value))
-                                }
-                                
-                                HStack {
-                                    Text("Status:")
-                                        .font(.caption)
-                                    
-                                    Text(frequencyStatusText(for: selectedPoint.value))
-                                        .font(.caption)
-                                        .foregroundColor(frequencyColor(for: selectedPoint.value))
-                                }
-                            }
-                            .padding(10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color(UIColor.tertiarySystemBackground))
-                                    .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
+                    Chart {
+                        // Plot frequency data
+                        ForEach(frequencyHistory) { record in
+                            LineMark(
+                                x: .value("Date", record.date),
+                                y: .value("Frequency", record.value)
                             )
-                            .transition(.opacity)
-                        }
-
-                        Chart {
-                            // Plot frequency data
-                            ForEach(frequencyHistory) { record in
-                                LineMark(
-                                    x: .value("Date", record.date),
-                                    y: .value("Frequency", record.value)
-                                )
-                                .foregroundStyle(Color.honeyAmber)
-                                .symbol {
-                                    Circle()
-                                        .fill(frequencyColor(for: record.value))
-                                        .frame(width: 10, height: 10)
-                                }
-                                .symbolSize(selectedDataPoint?.id == record.id ? 120 : 60)
+                            .foregroundStyle(Color.honeyAmber)
+                            .symbol {
+                                Circle()
+                                    .fill(frequencyColor(for: record.value))
+                                    .frame(width: 10, height: 10)
                             }
-                            
-                            if let selected = selectedDataPoint {
-                                PointMark(
-                                    x: .value("Date", selected.date),
-                                    y: .value("Frequency", selected.value)
-                                )
-                                .foregroundStyle(frequencyColor(for: selected.value))
-                                .symbolSize(200)
+                            .symbolSize(60)
+                        }
+                        
+                        // Add normal threshold rule
+                        RuleMark(y: .value("Normal", normalThreshold))
+                            .foregroundStyle(.green.opacity(0.5))
+                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                            .annotation(position: .leading) {
+                                Text("Normal")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
                             }
-                            
-                            // Add normal threshold rule
-                            RuleMark(y: .value("Normal", normalThreshold))
-                                .foregroundStyle(.green.opacity(0.5))
-                                .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                                .annotation(position: .leading) {
-                                    Text("Normal")
-                                        .font(.caption)
-                                        .foregroundColor(.green)
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                }
-                            
-                            // Add warning threshold rule
-                            RuleMark(y: .value("Danger", dangerThreshold))
-                                .foregroundStyle(.red.opacity(0.5))
-                                .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                                .annotation(position: .leading) {
-                                    Text("Danger")
-                                        .font(.caption)
-                                        .foregroundColor(.red)
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                }
-                        }
-                        .chartOverlay { proxy in
-                            GeometryReader { geometry in
-                                Rectangle()
-                                    .fill(Color.clear)
-                                    .contentShape(Rectangle())
-                                    .gesture(
-                                        DragGesture(minimumDistance: 0)
-                                            .onChanged { value in
-                                                let xPosition = value.location.x - geometry[proxy.plotAreaFrame].origin.x
-                                                guard xPosition >= 0, xPosition <= geometry[proxy.plotAreaFrame].width else {
-                                                    return
-                                                }
-                                                
-                                                let data = frequencyHistory
-                                                let stepWidth = geometry[proxy.plotAreaFrame].width / CGFloat(data.count - 1)
-                                                let index = min(Int(xPosition / stepWidth), data.count - 1)
-                                                
-                                                selectedDataPoint = data[index]
-                                                showDataPointInfo = true
-                                            }
-                                    )
+                        
+                        // Add warning threshold rule
+                        RuleMark(y: .value("Danger", dangerThreshold))
+                            .foregroundStyle(.red.opacity(0.5))
+                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                            .annotation(position: .leading) {
+                                Text("Danger")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
                             }
-                        }
-                        .frame(height: 250)
-                        .chartXAxis {
-                            AxisMarks(values: .automatic) { value in
-                                if let date = value.as(Date.self) {
-                                    AxisValueLabel {
-                                        Text(chartDateFormatter.string(from: date))
-                                    }
-                                }
-                            }
-                        }
-                        .chartYAxis {
-                            AxisMarks(position: .leading)
-                        }
-                        .padding(.top, showDataPointInfo ? 80 : 0)
                     }
-                    .animation(.easeInOut(duration: 0.2), value: showDataPointInfo)
+                    .frame(height: 250)
+                    .chartXAxis {
+                        AxisMarks(values: .automatic) { value in
+                            if let date = value.as(Date.self) {
+                                AxisValueLabel {
+                                    Text(chartDateFormatter.string(from: date))
+                                }
+                            }
+                        }
+                    }
+                    .chartYAxis {
+                        AxisMarks(position: .leading)
+                    }
                 } else {
                     VStack(spacing: 20) {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -406,7 +325,6 @@ struct BeehiveDetailView: View {
             )
         }
     }
-    
     // MARK: - Beekeeper Notes Section
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -414,16 +332,6 @@ struct BeehiveDetailView: View {
                 Text("Notes")
                     .font(.headline)
                     .foregroundColor(.honeyAmber)
-                
-                Spacer()
-                
-                Button(action: {
-                    // Edit notes action
-                }) {
-                    Image(systemName: "pencil")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                }
             }
             
             VStack(alignment: .leading, spacing: 12) {
@@ -564,22 +472,6 @@ struct BeehiveDetailView: View {
                 
                 Divider()
                     .padding(.horizontal)
-                
-                Button(action: {
-                    // Edit notes action
-                }) {
-                    HStack {
-                        Image(systemName: "note.text")
-                            .frame(width: 24)
-                        Text("Edit Notes")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                }
-                .padding()
-                .foregroundColor(.primary)
                 
                 Divider()
                     .padding(.horizontal)
