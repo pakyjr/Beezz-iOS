@@ -48,14 +48,14 @@ struct SoundAnalysisView: View {
     @State private var showHiveSelectionSheet = false
     @State private var showNewHiveSheet = false
     
-    // Stati per l'analisi audio
+    // Audio analysis states
     @State private var audioEngine: AVAudioEngine?
     @State private var inputNode: AVAudioInputNode?
     @State private var frequencyBands: [String: Double] = [:]
     @State private var problemDetected: Bool = false
     @State private var problemDescription: String = ""
     
-    // Calcola lo stato dell'arnia basato sulla frequenza corrente
+    // Calculate hive status based on current frequency
     var hiveStatus: Result {
         return Result.fromFrequency(frequency)
     }
@@ -63,41 +63,67 @@ struct SoundAnalysisView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background
-                Color(UIColor.systemGroupedBackground)
-                    .ignoresSafeArea()
+                // Background gradient using the app's color scheme
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.white.opacity(0.95), Color.gray.opacity(0.1)]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
                 VStack(spacing: 30) {
                     Spacer()
                     
-                    // Honey hexagon animation area
-                    ZStack {
-                        Circle()
-                            .fill(isListening ? Color.yellow.opacity(0.2) : (analysisComplete ? hiveStatus.color.opacity(0.2) : Color.yellow.opacity(0.2)))
-                            .frame(width: 250, height: 250)
-                        
-                        Circle()
-                            .strokeBorder(isListening ? Color.yellow : (analysisComplete ? hiveStatus.color : Color.yellow), lineWidth: 3)
-                            .frame(width: 250, height: 250)
-                        
-                        // Sound wave visualization
-                        HStack(spacing: 4) {
-                            ForEach(0..<soundWaves.count, id: \.self) { index in
-                                RoundedRectangle(cornerRadius: 2)
-                                    .fill(isListening ? Color.yellow : (analysisComplete ? hiveStatus.color : Color.yellow))
-                                    .frame(width: 4, height: isListening ? soundWaves[index] : 5)
-                                    .animation(.easeInOut(duration: 0.2), value: soundWaves[index])
-                            }
+                    // Simplified text
+                    Text(isListening ? "Listening..." : "Tap to analyze")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(.black)
+                        .padding(.bottom, 40)
+                    
+                    // Microphone button matching the app's color scheme
+                    Button(action: {
+                        if isListening {
+                            stopListening()
+                        } else {
+                            startListening()
                         }
-                        .frame(height: 100)
-                        
-                        if analysisComplete {
-                            VStack {
+                    }) {
+                        ZStack {
+                            // Outer circle
+                            Circle()
+                                .fill(Color.orange.opacity(0.2))
+                                .frame(width: 160, height: 160)
+                                .shadow(color: Color.orange.opacity(0.2), radius: 15)
+                            
+                            // Inner circle
+                            Circle()
+                                .fill(isListening ? Color.red.opacity(0.8) : Color.orange)
+                                .frame(width: 130, height: 130)
+                                .shadow(radius: 5)
+                            
+                            // Icon
+                            Image(systemName: isListening ? "stop.fill" : "mic.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 50, height: 50)
+                                .foregroundColor(.white)
+                        }
+                        .scaleEffect(isListening ? 0.9 : 1.0)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isListening)
+                    }
+                    
+                    Spacer()
+                    
+                    if analysisComplete {
+                        // Results panel
+                        VStack(spacing: 20) {
+                            // Frequency and status
+                            VStack(spacing: 10) {
                                 Text("\(frequency, specifier: "%.1f") Hz")
                                     .font(.system(size: 36, weight: .bold, design: .rounded))
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(.black)
                                 
-                                // Stato dell'arnia
+                                // Hive status
                                 HStack {
                                     Image(systemName: hiveStatus.icon)
                                         .foregroundColor(hiveStatus.color)
@@ -113,42 +139,10 @@ struct SoundAnalysisView: View {
                                         .fill(hiveStatus.color.opacity(0.2))
                                 )
                             }
-                        }
-                    }
-                    
-                    // Instruction text
-                    Text(isListening ? "Listening to hive sounds..." : "Tap to analyze hive sounds")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                    
-                    // Action button
-                    Button(action: {
-                        if isListening {
-                            stopListening()
-                        } else {
-                            startListening()
-                        }
-                    }) {
-                        ZStack {
-                            Circle()
-                                .fill(isListening ? Color.red : Color.yellow)
-                                .frame(width: 80, height: 80)
-                                .shadow(radius: 5)
                             
-                            Image(systemName: isListening ? "stop.fill" : "mic.fill")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 30, height: 30)
-                                .foregroundColor(.white)
-                        }
-                    }
-                    
-                    if analysisComplete {
-                        // Parametri di riferimento
-                        VStack(alignment: .leading, spacing: 8) {
-                            
+                            // Parameter reference
                             HStack(spacing: 15) {
-                                // Normale
+                                // Normal
                                 statusLegendItem(status: .normal, range: "200-500 Hz")
                                 
                                 // Warning
@@ -158,58 +152,63 @@ struct SoundAnalysisView: View {
                                 statusLegendItem(status: .critical, range: "700-3600 Hz")
                             }
                             .padding(.horizontal)
-                        }
-                        .padding(.vertical)
-                        
-                        // Buttons for pairing with existing hive or creating a new one
-                        VStack(spacing: 16) {
-                            // Pair with existing hive button
-                            Button(action: {
-                                showHiveSelectionSheet = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "link")
-                                        .font(.headline)
-                                        .foregroundColor(.black)
-                                    Text("Pair with existing hive")
-                                        .font(.headline)
-                                        .foregroundColor(.black)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.white.opacity(0.2))
-                                )
-                                
-                            }
                             
-                            // Create new hive button
-                            Button(action: {
-                                showNewHiveSheet = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "plus.circle")
-                                        .font(.headline)
-                                        .foregroundColor(.black)
-                                    Text("Create new hive")
-                                        .font(.headline)
-                                        .foregroundColor(.black)
+                            // Action buttons
+                            VStack(spacing: 16) {
+                                // Pair with existing hive button
+                                Button(action: {
+                                    showHiveSelectionSheet = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "link")
+                                            .font(.headline)
+                                            .foregroundColor(.black)
+                                        Text("Pair with existing hive")
+                                            .font(.headline)
+                                            .foregroundColor(.black)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color.white)
+                                            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                    )
                                 }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.white.opacity(0.2))
-                                )
                                 
+                                // Create new hive button
+                                Button(action: {
+                                    showNewHiveSheet = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "plus.circle")
+                                            .font(.headline)
+                                            .foregroundColor(.black)
+                                        Text("Create new hive")
+                                            .font(.headline)
+                                            .foregroundColor(.black)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color.white)
+                                            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                    )
+                                }
                             }
+                            .padding(.horizontal)
                         }
+                        .padding(.vertical, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white)
+                                .shadow(color: Color.black.opacity(0.1), radius: 10)
+                        )
                         .padding(.horizontal)
                     }
-                    
-                    Spacer()
                 }
+                .padding(.bottom, 40)
             }
             .navigationTitle("Sound Analysis")
             .navigationBarTitleDisplayMode(.inline)
@@ -218,6 +217,7 @@ struct SoundAnalysisView: View {
                     Button("Done") {
                         presentationMode.wrappedValue.dismiss()
                     }
+                    .foregroundColor(.black)
                 }
             }
             .onAppear {
@@ -254,7 +254,7 @@ struct SoundAnalysisView: View {
         }
     }
     
-    // Componente per visualizzare una legenda dello stato
+    // Component to display status legend
     func statusLegendItem(status: Result, range: String) -> some View {
         HStack {
             Circle()
@@ -265,18 +265,21 @@ struct SoundAnalysisView: View {
                 Text(status.rawValue)
                     .font(.caption)
                     .fontWeight(.bold)
+                    .foregroundColor(.black)
                 
                 Text(range)
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.black.opacity(0.8))
             }
         }
         .padding(8)
-        .background(status.color.opacity(0.1))
-        .cornerRadius(8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(status.color.opacity(0.2))
+        )
     }
     
-    // Configurazione della sessione audio
+    // Audio session setup
     func setupAudioSession() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
@@ -287,7 +290,7 @@ struct SoundAnalysisView: View {
         }
     }
     
-    // Reset della sessione audio
+    // Reset audio session
     func resetAudioSession() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
@@ -297,32 +300,32 @@ struct SoundAnalysisView: View {
         }
     }
     
-    // Avvia l'analisi del suono
+    // Start sound analysis
     func startListening() {
         isListening = true
         analysisComplete = false
         
-        // Inizializza l'audio engine
+        // Initialize audio engine
         audioEngine = AVAudioEngine()
         guard let audioEngine = audioEngine else { return }
         
         inputNode = audioEngine.inputNode
         
-        // Usa l'unwrap condizionale per gestire il caso in cui il formato sia nil
+        // Conditional unwrap to handle nil format case
         if let format = inputNode?.inputFormat(forBus: 0) {
-            // Configura il nodo di analisi audio
+            // Configure audio analysis node
             let analysisFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: format.sampleRate, channels: 1, interleaved: false)
             
-            // Installa un tap sull'input node per raccogliere i dati audio
+            // Install tap on input node to collect audio data
             inputNode?.installTap(onBus: 0, bufferSize: 1024, format: analysisFormat) { buffer, time in
                 self.analyzeAudioBuffer(buffer: buffer)
             }
             
-            // Avvia l'audio engine
+            // Start audio engine
             do {
                 try audioEngine.start()
                 
-                // Anima le onde sonore
+                // Animate sound waves
                 Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
                     if self.isListening {
                         for i in 0..<self.soundWaves.count {
@@ -333,7 +336,7 @@ struct SoundAnalysisView: View {
                     }
                 }
                 
-                // Termina automaticamente l'analisi dopo 5 secondi
+                // Automatically end analysis after 5 seconds
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                     if self.isListening {
                         self.stopListening()
@@ -350,26 +353,26 @@ struct SoundAnalysisView: View {
         }
     }
     
-    // Analizza il buffer audio per calcolare le frequenze
+    // Analyze audio buffer to calculate frequencies
     func analyzeAudioBuffer(buffer: AVAudioPCMBuffer) {
         guard let channelData = buffer.floatChannelData?[0] else { return }
         
         let format = buffer.format
         let frameCount = Int(buffer.frameLength)
         
-        // Windowing dei dati (Hann window)
+        // Windowing data (Hann window)
         var window = [Float](repeating: 0, count: frameCount)
         vDSP_hann_window(&window, vDSP_Length(frameCount), Int32(vDSP_HANN_NORM))
         
-        // Applica la finestra ai dati
+        // Apply window to data
         var windowed = [Float](repeating: 0.0, count: frameCount)
         vDSP_vmul(channelData, 1, window, 1, &windowed, 1, vDSP_Length(frameCount))
         
-        // Configura FFT
+        // Configure FFT
         let log2n = vDSP_Length(ceil(log2f(Float(frameCount))))
         let fftSize = Int(1 << log2n)
         
-        // Crea un setup FFT
+        // Create FFT setup
         let fftSetup = vDSP_create_fftsetup(log2n, Int32(kFFTRadix2))
         defer {
             if fftSetup != nil {
@@ -377,56 +380,56 @@ struct SoundAnalysisView: View {
             }
         }
         
-        // Prepara i dati per la FFT
+        // Prepare data for FFT
         var realInput = [Float](repeating: 0.0, count: fftSize)
         var imaginaryInput = [Float](repeating: 0.0, count: fftSize)
         
-        // Copia i dati windowed nell'input reale
+        // Copy windowed data to real input
         for i in 0..<frameCount {
             realInput[i] = windowed[i]
         }
         
-        // Crea la struttura per i dati complessi
+        // Create structure for complex data
         var complexInput = DSPSplitComplex(realp: &realInput, imagp: &imaginaryInput)
         
-        // Esegui la FFT forward
+        // Perform forward FFT
         vDSP_fft_zrip(fftSetup!, &complexInput, 1, log2n, FFTDirection(FFT_FORWARD))
         
-        // Calcola la magnitudo
+        // Calculate magnitude
         var magnitudes = [Float](repeating: 0.0, count: fftSize / 2)
         vDSP_zvmags(&complexInput, 1, &magnitudes, 1, vDSP_Length(fftSize / 2))
         
-        // Normalizza i risultati
+        // Normalize results
         var normalizedMagnitudes = [Float](repeating: 0.0, count: fftSize / 2)
         var normalizationFactor = Float(1.0 / Float(fftSize))
         vDSP_vsmul(magnitudes, 1, &normalizationFactor, &normalizedMagnitudes, 1, vDSP_Length(fftSize / 2))
         
-        // Converti in decibel
+        // Convert to decibels
         var decibels = [Float](repeating: 0.0, count: fftSize / 2)
         for i in 0..<fftSize / 2 {
             decibels[i] = 10.0 * log10f(normalizedMagnitudes[i])
         }
         
-        // Trova frequenza dominante
+        // Find dominant frequency
         var maxMagnitudeIndex: vDSP_Length = 0
         var maxValue: Float = 0.0
         vDSP_maxvi(decibels, 1, &maxValue, &maxMagnitudeIndex, vDSP_Length(fftSize / 2))
         
-        // Calcola la frequenza dominante
+        // Calculate dominant frequency
         let sampleRate = Float(format.sampleRate)
         let dominantFrequency = Float(maxMagnitudeIndex) * sampleRate / Float(fftSize / 2)
         
-        // Aggiorna la frequenza dominante
+        // Update dominant frequency
         DispatchQueue.main.async {
             self.frequency = Double(dominantFrequency)
         }
         
-        // Analizza diverse bande di frequenza
+        // Analyze different frequency bands
         let bandRanges: [String: (low: Int, high: Int)] = [
-            "Bassa (150-200 Hz)": (150, 200),
-            "Media (200-300 Hz)": (200, 300),
-            "Alta (300-400 Hz)": (300, 400),
-            "Molto alta (400-500 Hz)": (400, 500)
+            "Low (150-200 Hz)": (150, 200),
+            "Medium (200-300 Hz)": (200, 300),
+            "High (300-400 Hz)": (300, 400),
+            "Very High (400-500 Hz)": (400, 500)
         ]
         
         var bandValues = [String: Double]()
@@ -445,18 +448,18 @@ struct SoundAnalysisView: View {
             }
         }
         
-        // Aggiorna i valori delle bande di frequenza
+        // Update frequency band values
         DispatchQueue.main.async {
             self.frequencyBands = bandValues
         }
     }
     
-    // Ferma l'ascolto e completa l'analisi
+    // Stop listening and complete analysis
     func stopListening() {
         isListening = false
         analysisComplete = true
         
-        // Ferma l'audio engine e rimuovi il tap
+        // Stop audio engine and remove tap
         if let audioEngine = audioEngine, let inputNode = inputNode {
             audioEngine.stop()
             inputNode.removeTap(onBus: 0)
