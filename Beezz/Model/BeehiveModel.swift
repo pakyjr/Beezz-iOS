@@ -15,6 +15,8 @@ struct Beehive: Identifiable, Hashable {
     let status: BeehiveStatus
     let soundFrequency: Double
     let site: String
+    let notes: String
+    let lastNotesUpdate: Date?
     
     static func == (lhs: Beehive, rhs: Beehive) -> Bool {
         lhs.id == rhs.id
@@ -22,6 +24,17 @@ struct Beehive: Identifiable, Hashable {
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+    }
+    
+    // Init with default values for notes
+    init(id: Int, name: String, status: BeehiveStatus, soundFrequency: Double, site: String, notes: String = "", lastNotesUpdate: Date? = nil) {
+        self.id = id
+        self.name = name
+        self.status = status
+        self.soundFrequency = soundFrequency
+        self.site = site
+        self.notes = notes
+        self.lastNotesUpdate = lastNotesUpdate
     }
 }
 

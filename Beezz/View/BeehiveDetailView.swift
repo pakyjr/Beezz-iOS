@@ -19,6 +19,10 @@ struct BeehiveDetailView: View {
     @State private var showDisconnectAlert = false
     @State private var showFullHistory = false
     
+    // Chart interaction states
+    @State private var selectedDataPoint: FrequencyRecord?
+    @State private var showDataPointInfo = false
+    
     // Sample frequency history data
     @State private var frequencyHistory: [FrequencyRecord] = [
         FrequencyRecord(date: Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date(), value: 215.4),
@@ -82,8 +86,13 @@ struct BeehiveDetailView: View {
                 // History section
                 historySection
                 
+                // Beekeeper Notes section
+                notesSection
+                
                 // Actions section
                 actionsSection
+                
+                
             }
             .padding()
         }
@@ -236,58 +245,140 @@ struct BeehiveDetailView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 if beehive.status != .technicalIssue {
-                    Chart {
-                        // Plot frequency data
-                        ForEach(frequencyHistory) { record in
-                            LineMark(
-                                x: .value("Date", record.date),
-                                y: .value("Frequency", record.value)
+                    ZStack(alignment: .top) {
+                        // Data point popup
+                        if let selectedPoint = selectedDataPoint, showDataPointInfo {
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text("Date: \(dateFormatter.string(from: selectedPoint.date))")
+                                        .font(.caption)
+                                    
+                                    Spacer()
+                                    
+                                    Button(action: {
+                                        showDataPointInfo = false
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.gray)
+                                    }
+                                }
+                                
+                                HStack {
+                                    Text("Frequency:")
+                                        .font(.caption)
+                                    
+                                    Text("\(selectedPoint.value, specifier: "%.1f") Hz")
+                                        .font(.caption)
+                                        .bold()
+                                        .foregroundColor(frequencyColor(for: selectedPoint.value))
+                                }
+                                
+                                HStack {
+                                    Text("Status:")
+                                        .font(.caption)
+                                    
+                                    Text(frequencyStatusText(for: selectedPoint.value))
+                                        .font(.caption)
+                                        .foregroundColor(frequencyColor(for: selectedPoint.value))
+                                }
+                            }
+                            .padding(10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color(UIColor.tertiarySystemBackground))
+                                    .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
                             )
-                            .foregroundStyle(Color.honeyAmber)
-                            .symbol {
-                                Circle()
-                                    .fill(frequencyColor(for: record.value))
-                                    .frame(width: 8, height: 8)
+                            .transition(.opacity)
+                        }
+
+                        Chart {
+                            // Plot frequency data
+                            ForEach(frequencyHistory) { record in
+                                LineMark(
+                                    x: .value("Date", record.date),
+                                    y: .value("Frequency", record.value)
+                                )
+                                .foregroundStyle(Color.honeyAmber)
+                                .symbol {
+                                    Circle()
+                                        .fill(frequencyColor(for: record.value))
+                                        .frame(width: 10, height: 10)
+                                }
+                                .symbolSize(selectedDataPoint?.id == record.id ? 120 : 60)
+                            }
+                            
+                            if let selected = selectedDataPoint {
+                                PointMark(
+                                    x: .value("Date", selected.date),
+                                    y: .value("Frequency", selected.value)
+                                )
+                                .foregroundStyle(frequencyColor(for: selected.value))
+                                .symbolSize(200)
+                            }
+                            
+                            // Add normal threshold rule
+                            RuleMark(y: .value("Normal", normalThreshold))
+                                .foregroundStyle(.green.opacity(0.5))
+                                .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                                .annotation(position: .leading) {
+                                    Text("Normal")
+                                        .font(.caption)
+                                        .foregroundColor(.green)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                }
+                            
+                            // Add warning threshold rule
+                            RuleMark(y: .value("Danger", dangerThreshold))
+                                .foregroundStyle(.red.opacity(0.5))
+                                .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                                .annotation(position: .leading) {
+                                    Text("Danger")
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                }
+                        }
+                        .chartOverlay { proxy in
+                            GeometryReader { geometry in
+                                Rectangle()
+                                    .fill(Color.clear)
+                                    .contentShape(Rectangle())
+                                    .gesture(
+                                        DragGesture(minimumDistance: 0)
+                                            .onChanged { value in
+                                                let xPosition = value.location.x - geometry[proxy.plotAreaFrame].origin.x
+                                                guard xPosition >= 0, xPosition <= geometry[proxy.plotAreaFrame].width else {
+                                                    return
+                                                }
+                                                
+                                                let data = frequencyHistory
+                                                let stepWidth = geometry[proxy.plotAreaFrame].width / CGFloat(data.count - 1)
+                                                let index = min(Int(xPosition / stepWidth), data.count - 1)
+                                                
+                                                selectedDataPoint = data[index]
+                                                showDataPointInfo = true
+                                            }
+                                    )
                             }
                         }
-                        
-                        // Add normal threshold rule
-                        RuleMark(y: .value("Normal", normalThreshold))
-                            .foregroundStyle(.green.opacity(0.5))
-                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                            .annotation(position: .leading) {
-                                Text("Normal")
-                                    .font(.caption)
-                                    .foregroundColor(.green)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                            }
-                        
-                        // Add warning threshold rule
-                        RuleMark(y: .value("Danger", dangerThreshold))
-                            .foregroundStyle(.red.opacity(0.5))
-                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                            .annotation(position: .leading) {
-                                Text("Danger")
-                                    .font(.caption)
-                                    .foregroundColor(.red)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                            }
-                    }
-                    .frame(height: 250)
-                    .chartXAxis {
-                        AxisMarks(values: .automatic) { value in
-                            if let date = value.as(Date.self) {
-                                AxisValueLabel {
-                                    Text(chartDateFormatter.string(from: date))
+                        .frame(height: 250)
+                        .chartXAxis {
+                            AxisMarks(values: .automatic) { value in
+                                if let date = value.as(Date.self) {
+                                    AxisValueLabel {
+                                        Text(chartDateFormatter.string(from: date))
+                                    }
                                 }
                             }
                         }
+                        .chartYAxis {
+                            AxisMarks(position: .leading)
+                        }
+                        .padding(.top, showDataPointInfo ? 80 : 0)
                     }
-                    .chartYAxis {
-                        AxisMarks(position: .leading)
-                    }
+                    .animation(.easeInOut(duration: 0.2), value: showDataPointInfo)
                 } else {
                     VStack(spacing: 20) {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -314,6 +405,67 @@ struct BeehiveDetailView: View {
                     .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
             )
         }
+    }
+    
+    // MARK: - Beekeeper Notes Section
+    private var notesSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Notes")
+                    .font(.headline)
+                    .foregroundColor(.honeyAmber)
+                
+                Spacer()
+                
+                Button(action: {
+                    // Edit notes action
+                }) {
+                    Image(systemName: "pencil")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 12) {
+                if !beehive.notes.isEmpty {
+                    Text(beehive.notes)
+                        .font(.subheadline)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    HStack {
+                        Spacer()
+                        Text("No notes available")
+                            .foregroundColor(.gray)
+                            .font(.subheadline)
+                            .italic()
+                        Spacer()
+                    }
+                    .padding(.vertical, 12)
+                }
+                
+                HStack {
+                    Spacer()
+                    Text("Last updated: \(formatDate(beehive.lastNotesUpdate))")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+                    .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            )
+        }
+    }
+    
+    // Format date for notes update
+    private func formatDate(_ date: Date?) -> String {
+        guard let date = date else { return "Never" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
     }
     
     // MARK: - History Section
@@ -356,7 +508,7 @@ struct BeehiveDetailView: View {
                                         .foregroundColor(.gray)
                                 }
                                 
-                                Image(systemName: frequencyStatus(for: record.value))
+                                Image(systemName: frequencyStatusIcon(for: record.value))
                                     .foregroundColor(frequencyColor(for: record.value))
                             }
                             .padding(.vertical, 12)
@@ -401,6 +553,25 @@ struct BeehiveDetailView: View {
                         Image(systemName: "pencil")
                             .frame(width: 24)
                         Text("Edit Hive Name")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                }
+                .padding()
+                .foregroundColor(.primary)
+                
+                Divider()
+                    .padding(.horizontal)
+                
+                Button(action: {
+                    // Edit notes action
+                }) {
+                    HStack {
+                        Image(systemName: "note.text")
+                            .frame(width: 24)
+                        Text("Edit Notes")
                         Spacer()
                         Image(systemName: "chevron.right")
                             .font(.caption)
@@ -498,13 +669,23 @@ struct BeehiveDetailView: View {
         }
     }
     
-    private func frequencyStatus(for value: Double) -> String {
+    private func frequencyStatusIcon(for value: Double) -> String {
         if value >= dangerThreshold {
             return "xmark.circle.fill"
         } else if value >= normalThreshold {
             return "exclamationmark.triangle.fill"
         } else {
             return "checkmark.circle.fill"
+        }
+    }
+    
+    private func frequencyStatusText(for value: Double) -> String {
+        if value >= dangerThreshold {
+            return "Danger"
+        } else if value >= normalThreshold {
+            return "Warning"
+        } else {
+            return "Normal"
         }
     }
 }
@@ -566,10 +747,9 @@ struct FrequencyRecord: Identifiable, Equatable {
     var value: Double
     
     static func == (lhs: FrequencyRecord, rhs: FrequencyRecord) -> Bool {
-           return lhs.id == rhs.id
-       }
+        return lhs.id == rhs.id
+    }
 }
-
 
 struct BeehiveDetailView_Previews: PreviewProvider {
     static var previews: some View {
@@ -579,7 +759,9 @@ struct BeehiveDetailView_Previews: PreviewProvider {
                 name: "Hive 1",
                 status: .normal,
                 soundFrequency: 215.2,
-                site: "Main Facility"
+                site: "Main Facility",
+                notes: "This hive was established on March 1st. Queen seems healthy and productive. Honey production expected to begin next month.",
+                lastNotesUpdate: Date()
             ))
         }
         .preferredColorScheme(.light)

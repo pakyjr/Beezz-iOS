@@ -1,10 +1,3 @@
-//
-//  AddBeehiveView.swift
-//  Beezz
-//
-//  Created on 06/03/25.
-//
-
 import SwiftUI
 
 struct AddBeehiveView: View {
@@ -13,17 +6,15 @@ struct AddBeehiveView: View {
     @State private var selectedSite = "North Field"
     @State private var associateSensor = false
     @State private var selectedSensor = ""
-    @State private var isScanning = false
     @State private var showAdvancedSettings = false
     @State private var additionalNotes = ""
     
     let sites = ["North Field", "South Field", "Facility"]
     let availableSensors = [
         (name: "Sensor A1", status: "Available", battery: 85),
-        (name: "Sensor B2", status: "Available", battery: 72),
-        (name: "Sensor C3", status: "Connected", battery: 94),
+        (name: "Sensor A2", status: "Available", battery: 72),
         (name: "Sensor D4", status: "Available", battery: 35),
-        (name: "Sensor E5", status: "Available", battery: 12)
+        (name: "Sensor E2", status: "Available", battery: 12)
     ]
     
     // Function to get the battery icon based on percentage
@@ -41,8 +32,6 @@ struct AddBeehiveView: View {
     func batteryColor(for percentage: Int) -> Color {
         switch percentage {
             case 0...20: return .red
-            case 21...40: return .orange
-            case 41...60: return .yellow
             default: return .green
         }
     }
@@ -55,7 +44,7 @@ struct AddBeehiveView: View {
                     TextField("Enter hive name", text: $beehiveName)
                         .autocapitalization(.words)
                     
-                    Picker("Site", selection: $selectedSite) {
+                    Picker("Location", selection: $selectedSite) {
                         ForEach(sites, id: \.self) { site in
                             Text(site).tag(site)
                         }
@@ -63,24 +52,18 @@ struct AddBeehiveView: View {
                 }
                 
                 // SECTION 2: Sensor Association
-                Section(header: Text("Sensor Association")) {
-                    Toggle("Associate a sensor", isOn: $associateSensor)
-                        .tint(Color.honeyAmber)
+                Section(header: Text("CONNECTION")) {
+                    // Toggle with Wi-Fi icon and yellow color
+                    HStack {
+                        Image(systemName: "wifi")
+                            .foregroundColor(associateSensor ? .yellow : .yellow)
+                        Toggle("Connect a Wi-Fi Sensor", isOn: $associateSensor)
+                            .toggleStyle(SwitchToggleStyle(tint: .honeyAmber))
+                            .foregroundColor(.honeyAmber)
+                    }
                     
                     if associateSensor {
-                        Button(action: {
-                            isScanning = true
-                            // Logic to scan for sensors would go here
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                isScanning = false
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "magnifyingglass")
-                                Text(isScanning ? "Scanning..." : "Scan for Sensors")
-                            }
-                        }
-                        .padding(.vertical, 5)
+                        // Rimosso il pulsante "Scan for Sensors" con la lente d'ingrandimento
                         
                         ForEach(availableSensors, id: \.name) { sensor in
                             Button(action: {
@@ -90,6 +73,7 @@ struct AddBeehiveView: View {
                                     VStack(alignment: .leading) {
                                         Text(sensor.name)
                                             .fontWeight(.medium)
+                                            .foregroundColor(.primary)
                                         Text(sensor.status)
                                             .font(.caption)
                                             .foregroundColor(.secondary)
@@ -108,7 +92,8 @@ struct AddBeehiveView: View {
                                     
                                     if selectedSensor == sensor.name {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(Color.honeyAmber)
+                                            .foregroundColor(.yellow)
+                                            .padding(.leading, 5)
                                     }
                                 }
                             }
@@ -155,20 +140,22 @@ struct AddBeehiveView: View {
                 leading: Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
                 }
-                .foregroundColor(Color.honeyAmber),
+                .foregroundColor(.yellow),
                 trailing: Button("Save Hive") {
                     // Save action would go here
                     presentationMode.wrappedValue.dismiss()
                 }
                 .disabled(beehiveName.isEmpty)
-                .foregroundColor(beehiveName.isEmpty ? Color.gray : Color.honeyAmber)
+                .foregroundColor(beehiveName.isEmpty ? Color.gray : .yellow)
             )
         }
     }
 }
 
+
 struct AddBeehiveView_Previews: PreviewProvider {
     static var previews: some View {
         AddBeehiveView()
+            .preferredColorScheme(.dark)
     }
 }
