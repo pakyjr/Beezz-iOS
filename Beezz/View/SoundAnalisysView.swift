@@ -12,7 +12,7 @@ enum Result: String {
     var color: Color {
         switch self {
         case .normal: return .green
-        case .warning: return .orange
+        case .warning: return .yellow
         case .critical: return .red
         }
     }
@@ -91,13 +91,13 @@ struct SoundAnalysisView: View {
                         ZStack {
                             // Outer circle
                             Circle()
-                                .fill(Color.orange.opacity(0.2))
+                                .fill(Color.honeyAmber.opacity(0.2))
                                 .frame(width: 160, height: 160)
                                 .shadow(color: Color.orange.opacity(0.2), radius: 15)
                             
                             // Inner circle
                             Circle()
-                                .fill(isListening ? Color.red.opacity(0.8) : Color.orange)
+                                .fill(isListening ? Color.honeyAmber.opacity(0.8) : Color.honeyAmber)
                                 .frame(width: 130, height: 130)
                                 .shadow(radius: 5)
                             
