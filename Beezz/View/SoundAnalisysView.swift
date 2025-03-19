@@ -12,7 +12,7 @@ enum Result: String {
     var color: Color {
         switch self {
         case .normal: return .green
-        case .warning: return .orange
+        case .warning: return .yellow
         case .critical: return .red
         }
     }
@@ -48,6 +48,11 @@ struct SoundAnalysisView: View {
     @State private var showHiveSelectionSheet = false
     @State private var showNewHiveSheet = false
     
+    // Pulse animation states
+    @State private var pulseOpacity: CGFloat = 0.5
+    @State private var pulseScale: CGFloat = 0.0
+    @State private var pulseTimer: Timer?
+    
     // Audio analysis states
     @State private var audioEngine: AVAudioEngine?
     @State private var inputNode: AVAudioInputNode?
@@ -80,7 +85,7 @@ struct SoundAnalysisView: View {
                         .foregroundColor(.black)
                         .padding(.bottom, 40)
                     
-                    // Microphone button matching the app's color scheme
+                    
                     Button(action: {
                         if isListening {
                             stopListening()
@@ -89,29 +94,83 @@ struct SoundAnalysisView: View {
                         }
                     }) {
                         ZStack {
-                            // Outer circle
+                            // Outer circle - changes color based on result when analysis is complete
                             Circle()
-                                .fill(Color.orange.opacity(0.2))
+                                .fill(analysisComplete ? hiveStatus.color.opacity(0.2) : Color.honeyAmber.opacity(0.2))
                                 .frame(width: 160, height: 160)
-                                .shadow(color: Color.orange.opacity(0.2), radius: 15)
+                                .shadow(color: analysisComplete ? hiveStatus.color.opacity(0.2) : Color.orange.opacity(0.2), radius: 15)
                             
-                            // Inner circle
-                            Circle()
-                                .fill(isListening ? Color.red.opacity(0.8) : Color.orange)
-                                .frame(width: 130, height: 130)
-                                .shadow(radius: 5)
-                            
-                            // Icon
-                            Image(systemName: isListening ? "stop.fill" : "mic.fill")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 50, height: 50)
-                                .foregroundColor(.white)
+                            // Inner elements with consistent design
+                            ZStack {
+                                // 1. Circle with shadow - changes color based on result when analysis is complete
+                                Circle()
+                                    .foregroundColor(analysisComplete ? hiveStatus.color : Color.honeyAmber)
+                                    .frame(width: 130, height: 130)
+                                    .shadow(
+                                        color: Color.black.opacity(110/255),
+                                        radius: 4,
+                                        x: 0,
+                                        y: 2
+                                    )
+                                
+                                // 2. Hexagon with shadow (always the same)
+                                Image(systemName: "hexagon.fill")
+                                    .font(.system(size: 65))
+                                    .foregroundColor(.white)
+                                    .shadow(
+                                        color: Color.black.opacity(35/255),
+                                        radius: 4,
+                                        x: 0,
+                                        y: 2
+                                    )
+                                
+                                // 3. Waveform - changes color based on result when analysis is complete
+                                Image(systemName: "waveform.path.ecg")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(analysisComplete ? hiveStatus.color : .honeyAmber)
+                                    // Increased opacity pulsation range
+                                    .opacity(isListening ? (0.3 + pulseOpacity) : 1.0)
+                            }
+                            // Increased scale animation range
+                            .scaleEffect(isListening ? (0.9 + (pulseScale * 0.15)) : 1.0)
                         }
-                        .scaleEffect(isListening ? 0.9 : 1.0)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isListening)
+                        // Add pulsating rings when listening - changes color based on result when analysis is complete
+                        .overlay(
+                            isListening ?
+                                ZStack {
+                                    ForEach(0..<3) { i in
+                                        Circle()
+                                            .stroke(analysisComplete ? hiveStatus.color.opacity(0.5) : Color.honeyAmber.opacity(0.5), lineWidth: 5) // Increased opacity and width
+                                            .frame(width: 160, height: 160)
+                                            .scaleEffect(isListening ? 1.8 - (Double(i) * 0.2) : 1) // Increased scale
+                                            .opacity(isListening ? 0 : 1)
+                                            .animation(
+                                                Animation.easeOut(duration: 1.5) // Faster animation
+                                                    .repeatForever(autoreverses: false)
+                                                    .delay(Double(i) * 0.4), // Reduced delay
+                                                value: isListening
+                                            )
+                                    }
+                                } : nil
+                        )
+                        
                     }
-                    
+                    .onAppear {
+                        // Start the pulsation animation timer if not already running
+                        if pulseTimer == nil && isListening {
+                            startPulseAnimation()
+                        }
+                    }
+                    .onChange(of: isListening) { newValue in
+                        if newValue {
+                            startPulseAnimation()
+                        } else {
+                            stopPulseAnimation()
+                            // Reset the animation values
+                            pulseOpacity = 0.5
+                            pulseScale = 0.0
+                        }
+                    }
                     Spacer()
                     
                     if analysisComplete {
@@ -252,6 +311,22 @@ struct SoundAnalysisView: View {
                 }
             }
         }
+    }
+    
+    // Start pulse animation
+    func startPulseAnimation() {
+        pulseTimer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { _ in
+            // Create a subtle pulsing effect using sine waves
+            let currentTime = Date().timeIntervalSince1970
+            pulseOpacity = 0.5 + 0.5 * sin(currentTime * 3.0)
+            pulseScale = 0.5 + 0.5 * sin(currentTime * 2.5)
+        }
+    }
+    
+    // Stop pulse animation
+    func stopPulseAnimation() {
+        pulseTimer?.invalidate()
+        pulseTimer = nil
     }
     
     // Component to display status legend
@@ -467,6 +542,8 @@ struct SoundAnalysisView: View {
         }
     }
 }
+
+
 
 // Struttura per memorizzare i risultati dell'analisi
 struct AnalysisResult {
