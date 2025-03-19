@@ -32,10 +32,35 @@ struct HomepageView: View {
     ].sorted { $0.status.sortPriority < $1.status.sortPriority }
     
     @State private var notifications: [BeehiveNotification] = [
-        BeehiveNotification(id: 1, message: "Hive 2: Possible swarming detected", timestamp: Date(), hiveId: 2),
-        BeehiveNotification(id: 2, message: "Hive 4: Abnormal frequency detected", timestamp: Date().addingTimeInterval(-1800),hiveId: 4)
+        BeehiveNotification(
+            id: 1,
+            message: "Hive 2: Possible swarming detected",
+            timestamp: Date(),
+            hiveId: 2,
+            isRead: false,
+            type: .danger,
+            details: "High activity and unusual sound patterns detected in the hive. Immediate inspection recommended."
+        ),
+        BeehiveNotification(
+            id: 2,
+            message: "Hive 4: Abnormal frequency detected",
+            timestamp: Date().addingTimeInterval(-1800),
+            hiveId: 4,
+            isRead: false,
+            type: .warning,
+            details: "Sound frequency outside normal range detected. Check colony status."
+        ),
+        BeehiveNotification(
+            id: 3,
+            message: "Hive 1: Battery level low",
+            timestamp: Date().addingTimeInterval(-3600),
+            hiveId: 1,
+            isRead: true,
+            type: .technicalIssue,
+            details: "Sensor battery at 15%. Replace soon to avoid data loss."
+        )
     ]
-        
+
     @State private var showAddBeehive = false
     @State private var showNotifications = false
     @State private var selectedSite: String = "Main Facility"
@@ -92,7 +117,7 @@ struct HomepageView: View {
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(colorScheme == .dark ? Color(UIColor.secondarySystemBackground) : Color.white)
                         )
-                        .padding(.horizontal)
+                        .padding(.horizontal,4)
                         .padding(.top)
                         .onTapGesture {
                             showNotifications = true
@@ -192,7 +217,7 @@ struct HomepageView: View {
                             Image(systemName: "plus")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 22, height: 22)
+                                .frame(width: 25, height: 25)
                                 .foregroundColor(.honeyAmber)
                                 .padding(.top)
                                 .padding(.trailing, 8)
@@ -242,7 +267,7 @@ struct HomepageView: View {
                     ActionSheet(
                         title: Text("Select Site"),
                         buttons: sites.map { site in
-                            .default(Text(site)) {
+                                .default(Text(site)) {
                                 selectedSite = site
                             }
                         } + [.cancel(Text("Cancel"))]
@@ -256,6 +281,6 @@ struct HomepageView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         HomepageView()
-            .preferredColorScheme(.light)
+            .preferredColorScheme(.dark)
     }
 }

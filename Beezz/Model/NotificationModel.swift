@@ -19,7 +19,6 @@ struct BeehiveNotification: Identifiable {
     enum NotificationType {
         case warning
         case danger
-        case info
         case technicalIssue
         
         var icon: String {
@@ -28,8 +27,6 @@ struct BeehiveNotification: Identifiable {
                 return "exclamationmark.triangle.fill"
             case .danger:
                 return "exclamationmark.octagon.fill"
-            case .info:
-                return "info.circle.fill"
             case .technicalIssue:
                 return "wrench.fill"
             }
@@ -41,8 +38,6 @@ struct BeehiveNotification: Identifiable {
                 return .orange
             case .danger:
                 return .red
-            case .info:
-                return .blue
             case .technicalIssue:
                 return .gray
             }
@@ -56,8 +51,6 @@ struct BeehiveNotification: Identifiable {
                 return 1
             case .technicalIssue:
                 return 2
-            case .info:
-                return 3
             }
         }
     }
@@ -111,19 +104,6 @@ struct BeehiveNotification: Identifiable {
         )
     }
     
-    // Factory method to create an info notification
-    static func createInfo(for hiveId: Int, message: String, details: String? = nil) -> BeehiveNotification {
-        BeehiveNotification(
-            id: UUID().hashValue,
-            message: message,
-            timestamp: Date(),
-            hiveId: hiveId,
-            isRead: false,
-            type: .info,
-            details: details
-        )
-    }
-    
     // Factory method to create a technical issue notification
     static func createTechnicalIssue(for hiveId: Int, message: String, details: String? = nil) -> BeehiveNotification {
         BeehiveNotification(
@@ -155,11 +135,6 @@ struct BeehiveNotification: Identifiable {
                 message: "Sensor disconnected",
                 details: "No data received from sensors since 09:00. Check connectivity."
             ),
-            BeehiveNotification.createInfo(
-                for: 1,
-                message: "Hive inspection reminder",
-                details: "Scheduled inspection due today. Last inspection was 2 weeks ago."
-            ),
         ]
     }
     
@@ -178,17 +153,13 @@ extension BeehiveNotification: Equatable {
 
 // Extension for the notification filter options
 extension BeehiveNotification {
-    enum FilterOption {
-        case all
-        case unread
+    enum FilterOption: CaseIterable {
         case warning
         case danger
         case technicalIssue
         
         var displayName: String {
             switch self {
-            case .all: return "All"
-            case .unread: return "Unread"
             case .warning: return "Warnings"
             case .danger: return "Alerts"
             case .technicalIssue: return "Technical Issues"
@@ -196,7 +167,7 @@ extension BeehiveNotification {
         }
     }
     
-    enum TimePeriod {
+    enum TimePeriod: CaseIterable {
         case day
         case week
         case month

@@ -64,8 +64,9 @@ struct SettingsView: View {
                     }) {
                         HStack {
                             Image(systemName: "plus.circle.fill")
-                                .foregroundColor(.green)
+                                .foregroundColor(.honeyAmber)
                             Text("Add New Site")
+                                .foregroundColor(.honeyAmber)
                         }
                     }
                 }
@@ -73,8 +74,11 @@ struct SettingsView: View {
                 // MARK: - Notifications & Alerts
                 Section(header: Text("Notifications & Alerts")) {
                     Toggle("Critical Frequency Alerts", isOn: $frequencyCriticalEnabled)
+                        .toggleStyle(SwitchToggleStyle(tint: .honeyAmber))
                     Toggle("Abnormal Frequency Alerts", isOn: $frequencyAlertsEnabled)
+                        .toggleStyle(SwitchToggleStyle(tint: .honeyAmber))
                     Toggle("Technical Issue Alerts", isOn: $technicalIssueAlertsEnabled)
+                        .toggleStyle(SwitchToggleStyle(tint: .honeyAmber))
                     
                     NavigationLink(destination: NotificationDetailView()) {
                         Text("Advanced Settings")
@@ -86,7 +90,7 @@ struct SettingsView: View {
                     NavigationLink(destination: HelpGuideView()) {
                         HStack {
                             Image(systemName: "book.fill")
-                                .foregroundColor(.blue)
+                                .foregroundColor(.honeyAmber)
                             Text("User Guide")
                         }
                     }
@@ -94,7 +98,7 @@ struct SettingsView: View {
                     NavigationLink(destination: ContactSupportView()) {
                         HStack {
                             Image(systemName: "envelope.fill")
-                                .foregroundColor(.blue)
+                                .foregroundColor(.honeyAmber)
                             Text("Contact Support")
                         }
                     }
@@ -102,7 +106,7 @@ struct SettingsView: View {
                     NavigationLink(destination: AboutAppView()) {
                         HStack {
                             Image(systemName: "info.circle.fill")
-                                .foregroundColor(.blue)
+                                .foregroundColor(.honeyAmber)
                             Text("About App")
                         }
                     }
@@ -120,12 +124,14 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Close") {
                         dismiss()
                     }
+                    .foregroundColor(.honeyAmber)
+                    .font(.body.bold())
                 }
             }
             // Add Site Dialog
@@ -348,4 +354,3 @@ struct SettingsView_Previews: PreviewProvider {
         SettingsView()
     }
 }
-

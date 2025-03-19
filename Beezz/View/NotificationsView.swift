@@ -1,10 +1,3 @@
-//
-//  NotificationsView.swift
-//  Beezz
-//
-//  Created on 06/03/25.
-//
-
 import SwiftUI
 
 struct NotificationsView: View {
@@ -13,128 +6,210 @@ struct NotificationsView: View {
     var onSelectHive: (Int) -> Void
     
     @State private var searchText = ""
-    @State private var selectedFilter: NotificationFilter = .all
-    @State private var selectedPeriod: TimePeriod = .day
+    @State private var selectedFilter: BeehiveNotification.FilterOption?
+    @State private var selectedPeriod: BeehiveNotification.TimePeriod = .day
+    @State private var showFilterSheet = false
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                // Combined search and filter bar
-                VStack(spacing: 12) {
-                    // Search bar
-                    SearchBar(text: $searchText, placeholder: "Search notifications...")
-                        .padding(.horizontal)
+            ZStack {
+                Color(.systemGroupedBackground).edgesIgnoringSafeArea(.all)
+                
+                VStack(spacing: 0) {
+                    // Compact filter bar
+                    compactFilterBar
                     
-                    // Combined filter row
+                    // Notifications list
+                    notificationsListView
+                }
+            }
+            .navigationTitle("Notifications")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Text("Close")
+                            .foregroundColor(.honeyAmber)
+                            .font(.body.bold())
+                    }
+                }
+            }
+            .sheet(isPresented: $showFilterSheet) {
+                filterSheetView
+            }
+        }
+    }
+    
+    // MARK: - Component Views
+    
+    private var compactFilterBar: some View {
+        VStack(spacing: 0) {
+            HStack {
+                // Search bar
+                SearchBar(text: $searchText, placeholder: "Search notifications...")
+                
+                // Filter button
+                Button(action: {
+                    showFilterSheet = true
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                            .foregroundColor(selectedFilter != nil || selectedPeriod != .day ? Color.honeyAmber : .primary)
+                        
+                        if selectedFilter != nil || selectedPeriod != .day {
+                            Text(String(filteredNotifications.count))
+                                .font(.caption2)
+                                .padding(4)
+                                .background(Color.honeyAmber)
+                                .foregroundColor(.white)
+                                .clipShape(Circle())
+                        }
+                    }
+                    .padding(8)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            
+            // Active filters chips
+            if selectedFilter != nil || selectedPeriod != .day {
+                ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        // Category filters
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                FilterButton(title: "All", isSelected: selectedFilter == .all) {
-                                    selectedFilter = .all
-                                }
-                                
-                                FilterButton(title: "Alerts", icon: "exclamationmark.triangle.fill", color: .red, isSelected: selectedFilter == .alert) {
-                                    selectedFilter = .alert
-                                }
-                                
-                                FilterButton(title: "Warnings", icon: "exclamationmark.circle.fill", color: .yellow, isSelected: selectedFilter == .warning) {
-                                    selectedFilter = .warning
-                                }
-                                
-                                FilterButton(title: "Technical", icon: "wrench.fill", color: .gray, isSelected: selectedFilter == .technicalIssue) {
-                                    selectedFilter = .technicalIssue
-                                }
-                            }
+                        if let filter = selectedFilter {
+                            filterChip(
+                                label: filter.displayName,
+                                icon: iconForFilter(filter),
+                                action: { selectedFilter = nil }
+                            )
                         }
                         
-                        Divider()
-                            .frame(height: 20)
+                        if selectedPeriod != .day {
+                            filterChip(
+                                label: selectedPeriod.displayName,
+                                icon: "calendar",
+                                action: { selectedPeriod = .day }
+                            )
+                        }
                         
-                        // Time filters with shorter labels
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                PeriodButton(title: "24h", isSelected: selectedPeriod == .day) {
-                                    selectedPeriod = .day
-                                }
-                                
-                                PeriodButton(title: "7d", isSelected: selectedPeriod == .week) {
-                                    selectedPeriod = .week
-                                }
-                                
-                                PeriodButton(title: "30d", isSelected: selectedPeriod == .month) {
-                                    selectedPeriod = .month
-                                }
+                        if selectedFilter != nil || selectedPeriod != .day {
+                            Button(action: {
+                                selectedFilter = nil
+                                selectedPeriod = .day
+                            }) {
+                                Text("Clear All")
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
                             }
                         }
                     }
                     .padding(.horizontal)
+                    .padding(.bottom, 8)
                 }
-                .padding(.vertical, 8)
-                .background(Color(.systemBackground))
-                
-                // Notifications count and mark all as read
-                HStack {
-                    Text("\(filteredNotifications.count) Notifications")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                        .padding(.leading)
-                    
-                    Spacer()
-                    
-                    if !filteredNotifications.isEmpty {
-                        Button(action: {
-                            // Mark all as read action would go here
-                        }) {
-                            Text("Mark All as Read")
-                                .font(.caption)
-                                .foregroundColor(Color.honeyAmber)
-                        }
-                        .padding(.trailing)
-                    }
-                }
-                .padding(.vertical, 6)
-                .background(Color(.systemGroupedBackground))
-                
-                // Notifications list
-                List {
-                    if filteredNotifications.isEmpty {
-                        Text("No notifications found")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                            .padding(.vertical, 24)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .listRowBackground(Color.clear)
-                    } else {
-                        ForEach(filteredNotifications) { notification in
-                            NotificationCell(notification: notification) {
-                                onSelectHive(notification.hiveId)
-                                presentationMode.wrappedValue.dismiss()
-                            }
-                            .swipeActions(edge: .trailing) {
-                                Button(role: .destructive) {
-                                    // Delete action would go here
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                                
-                                Button {
-                                    // Mark as read action would go here
-                                } label: {
-                                    Label("Read", systemImage: "eye")
-                                }
-                                .tint(.blue)
-                            }
-                        }
-                    }
-                }
-                .listStyle(InsetGroupedListStyle())
             }
-            .navigationTitle("Notifications")
+            
+            Divider()
+        }
+        .background(Color(.systemBackground))
+    }
+    
+    private func filterChip(label: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if !icon.isEmpty {
+                    Image(systemName: icon)
+                        .font(.system(size: 10))
+                }
+                
+                Text(label)
+                    .font(.footnote)
+                
+                Image(systemName: "xmark")
+                    .font(.system(size: 10))
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.honeyAmber.opacity(0.15))
+            .foregroundColor(Color.honeyAmber)
+            .cornerRadius(16)
+        }
+    }
+    
+    private var filterSheetView: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Notification Type")) {
+                    Button(action: {
+                        selectedFilter = nil
+                    }) {
+                        HStack {
+                            Image(systemName: "bell.fill")
+                                .foregroundColor(.primary)
+                                .frame(width: 24)
+                            
+                            Text("All Types")
+                            
+                            Spacer()
+                            
+                            if selectedFilter == nil {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(Color.honeyAmber)
+                            }
+                        }
+                    }
+                    
+                    ForEach(BeehiveNotification.FilterOption.allCases, id: \.self) { filter in
+                        Button(action: {
+                            selectedFilter = filter
+                        }) {
+                            HStack {
+                                Image(systemName: iconForFilter(filter))
+                                    .foregroundColor(colorForFilter(filter))
+                                    .frame(width: 24)
+                                
+                                Text(filter.displayName)
+                                
+                                Spacer()
+                                
+                                if selectedFilter == filter {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(Color.honeyAmber)
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                Section(header: Text("Time Period")) {
+                    ForEach(BeehiveNotification.TimePeriod.allCases, id: \.self) { period in
+                        Button(action: {
+                            selectedPeriod = period
+                        }) {
+                            HStack {
+                                Text(period.displayName)
+                                
+                                Spacer()
+                                
+                                if selectedPeriod == period {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(Color.honeyAmber)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Filter Notifications")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Close") {
-                        presentationMode.wrappedValue.dismiss()
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        showFilterSheet = false
                     }
                     .foregroundColor(Color.honeyAmber)
                 }
@@ -142,43 +217,155 @@ struct NotificationsView: View {
         }
     }
     
-    // Filter notifications based on search, category, and time period
+    private var notificationsListView: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                if filteredNotifications.isEmpty {
+                    emptyStateView
+                } else {
+                    ForEach(filteredNotifications) { notification in
+                        NotificationCell(notification: notification) {
+                            onSelectHive(notification.hiveId)
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemBackground))
+                        .contextMenu {
+                            Button(action: {
+                                // Mark as read action
+                            }) {
+                                Label(notification.isRead ? "Mark as Unread" : "Mark as Read", systemImage: notification.isRead ? "eye.slash" : "eye")
+                            }
+                            
+                            Button(role: .destructive, action: {
+                                // Delete action
+                            }) {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                        
+                        Divider()
+                            .padding(.leading, 70)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var emptyStateView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "bell.slash")
+                .font(.system(size: 50))
+                .foregroundColor(.gray)
+            
+            Text("No notifications")
+                .font(.title3)
+                .fontWeight(.medium)
+                .foregroundColor(.gray)
+            
+            Text("Try changing your filters or check back later")
+                .font(.subheadline)
+                .foregroundColor(.gray.opacity(0.8))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Button(action: {
+                selectedFilter = nil
+                selectedPeriod = .day
+                searchText = ""
+            }) {
+                Text("Reset Filters")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color.honeyAmber)
+                    .cornerRadius(10)
+            }
+            .padding(.top, 10)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 80)
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func iconForFilter(_ filter: BeehiveNotification.FilterOption) -> String {
+        switch filter {
+        case .warning:
+            return "exclamationmark.triangle.fill"
+        case .danger:
+            return "exclamationmark.octagon.fill"
+        case .technicalIssue:
+            return "wrench.fill"
+        }
+    }
+    
+    private func colorForFilter(_ filter: BeehiveNotification.FilterOption) -> Color {
+        switch filter {
+        case .warning:
+            return .orange
+        case .danger:
+            return .red
+        case .technicalIssue:
+            return .gray
+        }
+    }
+    
+    // MARK: - Filtering Logic
+    
     var filteredNotifications: [BeehiveNotification] {
+        // Filter by time period
         let periodFiltered = notifications.filter { notification in
             switch selectedPeriod {
             case .day:
-                return Calendar.current.isDateInToday(notification.timestamp) ||
-                       Calendar.current.isDateInYesterday(notification.timestamp)
+                return Date().timeIntervalSince(notification.timestamp) < 86400
             case .week:
-                let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
-                return notification.timestamp >= sevenDaysAgo
+                return Date().timeIntervalSince(notification.timestamp) < 604800
             case .month:
-                let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date())!
-                return notification.timestamp >= thirtyDaysAgo
-            }
-        }
-        
-        let categoryFiltered = selectedFilter == .all ? periodFiltered : periodFiltered.filter { notification in
-            let message = notification.message.lowercased()
-            switch selectedFilter {
-            case .alert:
-                return message.contains("alert") || message.contains("swarming") || message.contains("danger")
-            case .warning:
-                return message.contains("abnormal") || message.contains("warning")
-            case .technicalIssue:
-                return message.contains("offline") || message.contains("disconnected") || message.contains("technical")
-            default:
+                return Date().timeIntervalSince(notification.timestamp) < 2592000
+            case .all:
                 return true
             }
         }
         
+        // Filter by notification type
+        let typeFiltered = periodFiltered.filter { notification in
+            if let filter = selectedFilter {
+                switch filter {
+                case .warning:
+                    return notification.type == .warning
+                case .danger:
+                    return notification.type == .danger
+                case .technicalIssue:
+                    return notification.type == .technicalIssue
+                }
+            } else {
+                return true // No type filter applied, show all
+            }
+        }
+        
+        // Filter by search text
         if searchText.isEmpty {
-            return categoryFiltered.sorted(by: { $0.timestamp > $1.timestamp })
+            // Sort by priority and timestamp
+            return typeFiltered.sorted { (a, b) -> Bool in
+                if a.type.sortPriority != b.type.sortPriority {
+                    return a.type.sortPriority < b.type.sortPriority
+                }
+                return a.timestamp > b.timestamp
+            }
         } else {
-            return categoryFiltered.filter { notification in
+            // Filter by search text and sort
+            return typeFiltered.filter { notification in
                 notification.message.lowercased().contains(searchText.lowercased()) ||
                 "Hive \(notification.hiveId)".lowercased().contains(searchText.lowercased())
-            }.sorted(by: { $0.timestamp > $1.timestamp })
+            }.sorted { (a, b) -> Bool in
+                if a.type.sortPriority != b.type.sortPriority {
+                    return a.type.sortPriority < b.type.sortPriority
+                }
+                return a.timestamp > b.timestamp
+            }
         }
     }
 }
@@ -212,179 +399,82 @@ struct SearchBar: View {
     }
 }
 
-struct FilterButton: View {
-    let title: String
-    var icon: String? = nil
-    var color: Color = .blue
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                if let icon = icon {
-                    Image(systemName: icon)
-                        .foregroundColor(isSelected ? .white : color)
-                        .font(.system(size: 10))
-                }
-                
-                Text(title)
-                    .font(.caption2)
-                    .fontWeight(isSelected ? .semibold : .regular)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(isSelected ? color : Color(.systemGray6))
-            .foregroundColor(isSelected ? .white : .primary)
-            .cornerRadius(12)
-        }
-    }
-}
-
-struct PeriodButton: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption2)
-                .fontWeight(isSelected ? .semibold : .regular)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(isSelected ? Color.honeyAmber : Color(.systemGray6))
-                .foregroundColor(isSelected ? .white : .primary)
-                .cornerRadius(12)
-        }
-    }
-}
-
 struct NotificationCell: View {
     let notification: BeehiveNotification
     let onTap: () -> Void
     
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 12) {
-                // Severity icon with simplified design
+            HStack(spacing: 16) {
+                // Notification icon
                 ZStack {
                     Circle()
-                        .fill(severityColor.opacity(0.15))
-                        .frame(width: 36, height: 36)
+                        .fill(notification.type.color.opacity(0.15))
+                        .frame(width: 42, height: 42)
                     
-                    Image(systemName: severityIcon)
-                        .foregroundColor(severityColor)
-                        .font(.system(size: 16))
+                    Image(systemName: notification.type.icon)
+                        .foregroundColor(notification.type.color)
+                        .font(.system(size: 18))
                 }
                 
-                // Content area
+                // Content
                 VStack(alignment: .leading, spacing: 6) {
-                    // Top row with message and timestamp
-                    HStack(alignment: .top) {
-                        Text(notification.message)
-                            .font(.subheadline)
-                            .lineLimit(2)
-                            .foregroundColor(.primary)
-                        
-                        Spacer(minLength: 8)
-                        
-                        Text(timeAgo(date: notification.timestamp))
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                    }
+                    // Message
+                    Text(notification.message)
+                        .font(.subheadline)
+                        .lineLimit(2)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.leading)
                     
-                    // Bottom row with hive ID and status
-                    HStack {
-                        Text("Hive \(notification.hiveId)")
+                    // Bottom row
+                    HStack(spacing: 10) {
+                        // Hive badge
+                        HStack(spacing: 4) {
+                            Image(systemName: "hexagon.fill")
+                                .font(.system(size: 10))
+                            
+                            Text("\(notification.hiveId)")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color.honeyAmber.opacity(0.15))
+                        .foregroundColor(Color.honeyAmber)
+                        .cornerRadius(10)
+                        
+                        // Time ago
+                        Text(timeAgo(date: notification.timestamp))
                             .font(.caption)
-                            .padding(.vertical, 2)
-                            .padding(.horizontal, 6)
-                            .background(Color.honeyAmber.opacity(0.15))
-                            .foregroundColor(Color.honeyAmber)
-                            .cornerRadius(4)
-                        
-                        Spacer()
-                        
-                        // Status badge
-                        statusBadge
+                            .foregroundColor(.secondary)
                     }
                 }
+                .padding(.trailing, 4)
                 
-                // Discrete navigation indicator
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.gray.opacity(0.5))
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 8) {
+                    // Unread indicator
+                    if !notification.isRead {
+                        Circle()
+                            .fill(Color.honeyAmber)
+                            .frame(width: 8, height: 8)
+                    } else {
+                        Circle()
+                            .fill(Color.clear)
+                            .frame(width: 8, height: 8)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.gray.opacity(0.7))
+                }
             }
-            .padding(.vertical, 6)
+            .opacity(notification.isRead ? 0.8 : 1)
         }
         .buttonStyle(PlainButtonStyle())
-    }
-    
-    // Simplified status badge
-    private var statusBadge: some View {
-        Text(statusText)
-            .font(.system(size: 10, weight: .semibold))
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(statusColor.opacity(0.15))
-            .foregroundColor(statusColor)
-            .cornerRadius(4)
-    }
-    
-    // Status text based on notification content
-    private var statusText: String {
-        let message = notification.message.lowercased()
-        if message.contains("swarming") || message.contains("danger") {
-            return "CRITICAL"
-        } else if message.contains("abnormal") || message.contains("warning") {
-            return "WARNING"
-        } else if message.contains("offline") || message.contains("disconnected") {
-            return "OFFLINE"
-        } else {
-            return "INFO"
-        }
-    }
-    
-    // Status color based on status text
-    private var statusColor: Color {
-        switch statusText {
-        case "CRITICAL":
-            return .red
-        case "WARNING":
-            return .yellow
-        case "OFFLINE":
-            return .gray
-        default:
-            return Color.honeyAmber
-        }
-    }
-    
-    // Determine icon based on notification content
-    var severityIcon: String {
-        let message = notification.message.lowercased()
-        if message.contains("swarming") || message.contains("danger") {
-            return "exclamationmark.triangle.fill"
-        } else if message.contains("abnormal") || message.contains("warning") {
-            return "exclamationmark.circle.fill"
-        } else if message.contains("offline") || message.contains("disconnected") {
-            return "wifi.slash"
-        } else {
-            return "bell.fill"
-        }
-    }
-    
-    var severityColor: Color {
-        let message = notification.message.lowercased()
-        if message.contains("swarming") || message.contains("danger") {
-            return .red
-        } else if message.contains("abnormal") || message.contains("warning") {
-            return .yellow
-        } else if message.contains("offline") || message.contains("disconnected") {
-            return .gray
-        } else {
-            return Color.honeyAmber
-        }
     }
     
     func timeAgo(date: Date) -> String {
@@ -403,12 +493,13 @@ struct NotificationCell: View {
     }
 }
 
-// MARK: - Helper Types
+// MARK: - Preview
 
-enum NotificationFilter {
-    case all, alert, warning, technicalIssue
-}
-
-enum TimePeriod {
-    case day, week, month
+struct NotificationsView_Previews: PreviewProvider {
+    static var previews: some View {
+        NotificationsView(
+            notifications: BeehiveNotification.createSampleNotifications(),
+            onSelectHive: { _ in }
+        )
+    }
 }

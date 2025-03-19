@@ -56,10 +56,10 @@ struct AddBeehiveView: View {
                     // Toggle with Wi-Fi icon and yellow color
                     HStack {
                         Image(systemName: "wifi")
-                            .foregroundColor(associateSensor ? .yellow : .yellow)
+                            .foregroundColor(associateSensor ? .honeyAmber : .honeyAmber)
                         Toggle("Connect a Wi-Fi Sensor", isOn: $associateSensor)
                             .toggleStyle(SwitchToggleStyle(tint: .honeyAmber))
-                            .foregroundColor(.honeyAmber)
+                            .foregroundColor(Color.honeyAmber)
                     }
                     
                     if associateSensor {
@@ -92,7 +92,7 @@ struct AddBeehiveView: View {
                                     
                                     if selectedSensor == sensor.name {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.yellow)
+                                            .foregroundColor(.honeyAmber)
                                             .padding(.leading, 5)
                                     }
                                 }
@@ -140,13 +140,15 @@ struct AddBeehiveView: View {
                 leading: Button("Cancel") {
                     presentationMode.wrappedValue.dismiss()
                 }
-                .foregroundColor(.yellow),
+                .foregroundColor(.honeyAmber)
+                .font(.body.bold()),
                 trailing: Button("Save Hive") {
                     // Save action would go here
                     presentationMode.wrappedValue.dismiss()
                 }
                 .disabled(beehiveName.isEmpty)
-                .foregroundColor(beehiveName.isEmpty ? Color.gray : .yellow)
+                .foregroundColor(beehiveName.isEmpty ? Color.gray : .honeyAmber)
+                .font(.body.bold())
             )
         }
     }
