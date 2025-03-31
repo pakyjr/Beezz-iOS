@@ -1,52 +1,53 @@
-# Beezz  
+# Beezz 🐝
 
-This project aims to develop an intelligent hive monitoring system based on the analysis of sound frequencies produced by bees. Using a hardware device equipped with a microphone and an iOS app developed in Swift, the system will automatically identify different hive states and send real-time notifications to beekeepers.
+## Project Overview
+Beezz is an intelligent hive monitoring system that analyzes sound frequencies produced by bees to provide real-time insights into hive conditions. Using a hardware device equipped with a microphone and an iOS app developed in Swift, the system automatically identifies different hive states and sends timely notifications to beekeepers.
 
-## Index  
+## Features
+- **Sound Analysis**: Advanced algorithms analyze bee sounds to detect hive status, including swarming alerts and anomaly detection
+- **Intuitive Dashboard**: Clear visual indicators and interactive graphs displaying hive health and activity
+- **Real-Time Notifications**: Instant alerts for critical events that require immediate attention
+- **Hive Management**: Easily add, edit, and track multiple hives in one centralized platform
+- **Historical Data**: Access and analyze trends over time to improve beekeeping practices
+- **Customizable Settings**: Personalize alert thresholds and monitoring preferences
 
-- [Introduction](#introduction)  
-- [Features](#features)  
-- [Installation](#installation)  
-- [Technologies Used](#technologies-used)  
-- [Contributions](#contributions)  
-- [License](#license)  
+## Project Structure
+The project follows a modular and organized architecture:
+- **Components**: Reusable UI components including hive cards, status indicators, and graphs
+- **Model**: Data structures for hive information, sound analysis, and notifications
+- **View**: Main interfaces including dashboard, hive details, and settings
+- **Assets**: Application resources including images and reference sound samples
 
-## Introduction  
+## Technologies Used
+- **Swift** and **SwiftUI** for the iOS application
+- **UIKit** for custom interface components
+- **Swift Data** for local storage of hive information
+- **Custom Hardware** with microphone sensors for data collection
 
-Beezz allows beekeepers to monitor the status of their hives in real time using advanced sensors. With an intuitive interface, users can access detailed data on their hives, receive notifications in case of anomalies, and view historical statistics to improve hive management.
-
-## Features  
-
-- **Intuitive dashboard** with clear visual indicators of hive status  
-- **Real-time notifications** for critical events such as swarming or anomalies  
-
-## Installation  
-
+## Installation
 To run the project:
-
-1. Clone the GitHub repository:  
+1. Clone the GitHub repository:
    ```sh
-   git clone https://github.com/LorenzoPizzuto/Beezz.git  
-   ```  
-2. Open the project with Xcode  
-3. Run it on a simulator or iOS device  
+   git clone https://github.com/LorenzoPizzuto/Beezz.git
+   ```
+2. Open the project with Xcode
+3. Connect hardware device (if available) or use simulator mode
+4. Build and run on an iOS device or simulator
 
-## Technologies Used  
+## Future Improvements
+- Integration with IoT sensors for real-time hive monitoring.
+- Enhanced AI-powered sound analysis for hive health detection.
+- Cloud storage and multi-device synchronization.
 
-- Swift  
-- SwiftUI  
-- Xcode  
-- UIKit  
-
-## Contributions  
-
+## Contributions
 Contributions and suggestions are welcome! To contribute:
+1. Fork the repository
+2. Create a branch for your feature
+3. Submit a pull request with detailed description of changes
 
-1. Fork the repository  
-2. Create a branch for your feature  
-3. Submit a pull request  
-
-## License  
-
+## License
 This project is distributed under the MIT license. See the `LICENSE` file for more details.
 
+---
+
+Beezz aims to revolutionize beekeeping by combining advanced technology with practical beekeeping knowledge, making hive monitoring more accessible and effective for beekeepers of all experience levels.
