@@ -1,5 +1,7 @@
 # Beezz 🐝
 
+![PreviewBeezzzGithub](https://github.com/user-attachments/assets/9f853372-e5bc-4311-8026-74d79f8c1024)
+
 ## Project Overview
 Beezz is an intelligent hive monitoring system that analyzes sound frequencies produced by bees to provide real-time insights into hive conditions. Using a hardware device equipped with a microphone and an iOS app developed in Swift, the system automatically identifies different hive states and sends timely notifications to beekeepers.
 
