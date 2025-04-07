@@ -1,4 +1,4 @@
-# Beezz 🐝
+# Beezzz 🐝
 
 ![PreviewBeezzzGithub](https://github.com/user-attachments/assets/abe26c4d-54c0-40db-91b8-e82313879e75)
 
